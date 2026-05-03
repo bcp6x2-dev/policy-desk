@@ -7,7 +7,8 @@ const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
-
+const contactsRouter = require('./routes/contacts');
+app.use('/api/contacts', contactsRouter);
 app.get('/', (req, res) => {
   res.json({ message: 'PolicyDesk API is running!' });
 });
