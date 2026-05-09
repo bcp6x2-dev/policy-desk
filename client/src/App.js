@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import Login from './Login';
+import ClientForm from './ClientForm';
+import ClientDetail from './ClientDetail';
 
 function App() {
 const [user, setUser] = useState(null);
 const [contacts, setContacts] = useState([]);
 const [loading, setLoading] = useState(true);
 const [search, setSearch] = useState('');
-const [showForm, setShowForm] = useState(false);
-const [newContact, setNewContact] = useState({
-name: '', email: '', phone: '', address: '', dob: '', status: 'lead', source: 'manual'
-});
+const [showClientForm, setShowClientForm] = useState(false);
+const [selectedContact, setSelectedContact] = useState(null);
 
 useEffect(() => {
 const savedUser = localStorage.getItem('user');
@@ -41,21 +41,6 @@ setLoading(false);
 });
 }
 
-function handleAddContact(e) {
-e.preventDefault();
-fetch('http://localhost:5000/api/contacts', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify(newContact),
-})
-.then(res => res.json())
-.then(() => {
-fetchContacts();
-setShowForm(false);
-setNewContact({ name: '', email: '', phone: '', address: '', dob: '', status: 'lead', source: 'manual' });
-});
-}
-
 const filtered = contacts.filter(c =>
 c.name?.toLowerCase().includes(search.toLowerCase()) ||
 c.email?.toLowerCase().includes(search.toLowerCase()) ||
@@ -79,14 +64,6 @@ backgroundColor: status === 'lead' ? '#FFF3CD' : status === 'active' ? '#D4EDDA'
 color: status === 'lead' ? '#856404' : status === 'active' ? '#155724' : '#721C24',
 padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold'
 }),
-overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-modal: { backgroundColor: 'white', borderRadius: '10px', padding: '28px', width: '460px', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' },
-modalTitle: { margin: '0 0 20px', color: '#1B4F8A' },
-input: { width: '100%', padding: '9px 12px', marginBottom: '12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '14px', boxSizing: 'border-box' },
-select: { width: '100%', padding: '9px 12px', marginBottom: '16px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '14px', boxSizing: 'border-box' },
-modalBtns: { display: 'flex', justifyContent: 'flex-end', gap: '10px' },
-cancelBtn: { padding: '9px 18px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', fontSize: '14px' },
-saveBtn: { backgroundColor: '#1B4F8A', color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' },
 };
 
 if (!user) return <Login onLogin={handleLogin} />;
@@ -111,7 +88,7 @@ Sign Out
 </div>
 <div style={{ display: 'flex', gap: '12px' }}>
 <input style={styles.search} placeholder="Search by name, email or phone..." value={search} onChange={e => setSearch(e.target.value)} />
-<button style={styles.addBtn} onClick={() => setShowForm(true)}>+ Add Contact</button>
+<button style={styles.addBtn} onClick={() => setShowClientForm(true)}>+ Add Client</button>
 </div>
 </div>
 
@@ -125,8 +102,8 @@ Sign Out
 <th style={styles.th}>Name</th>
 <th style={styles.th}>Email</th>
 <th style={styles.th}>Phone</th>
+<th style={styles.th}>Type</th>
 <th style={styles.th}>Status</th>
-<th style={styles.th}>Source</th>
 </tr>
 </thead>
 <tbody>
@@ -135,13 +112,15 @@ Sign Out
 ) : (
 filtered.map(contact => (
 <tr key={contact.id}
+onClick={() => setSelectedContact(contact)}
+style={{ cursor: 'pointer' }}
 onMouseEnter={e => e.currentTarget.style.backgroundColor = '#F8FAFF'}
 onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}>
 <td style={{ ...styles.td, fontWeight: '600' }}>{contact.name}</td>
 <td style={styles.td}>{contact.email}</td>
 <td style={styles.td}>{contact.phone}</td>
+<td style={styles.td}>{contact.client_type || 'insurance'}</td>
 <td style={styles.td}><span style={styles.badge(contact.status)}>{contact.status}</span></td>
-<td style={styles.td}>{contact.source}</td>
 </tr>
 ))
 )}
@@ -151,29 +130,19 @@ onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}>
 </div>
 </div>
 
-{showForm && (
-<div style={styles.overlay}>
-<div style={styles.modal}>
-<h2 style={styles.modalTitle}>Add New Contact</h2>
-<form onSubmit={handleAddContact}>
-<input style={styles.input} placeholder="Full Name *" value={newContact.name} onChange={e => setNewContact({ ...newContact, name: e.target.value })} required />
-<input style={styles.input} placeholder="Email" value={newContact.email} onChange={e => setNewContact({ ...newContact, email: e.target.value })} />
-<input style={styles.input} placeholder="Phone" value={newContact.phone} onChange={e => setNewContact({ ...newContact, phone: e.target.value })} />
-<input style={styles.input} placeholder="Address" value={newContact.address} onChange={e => setNewContact({ ...newContact, address: e.target.value })} />
-<input style={styles.input} type="date" value={newContact.dob} onChange={e => setNewContact({ ...newContact, dob: e.target.value })} />
-<select style={styles.select} value={newContact.status} onChange={e => setNewContact({ ...newContact, status: e.target.value })}>
-<option value="lead">Lead</option>
-<option value="prospect">Prospect</option>
-<option value="active">Active Client</option>
-<option value="inactive">Inactive</option>
-</select>
-<div style={styles.modalBtns}>
-<button type="button" style={styles.cancelBtn} onClick={() => setShowForm(false)}>Cancel</button>
-<button type="submit" style={styles.saveBtn}>Save Contact</button>
-</div>
-</form>
-</div>
-</div>
+{showClientForm && (
+<ClientForm
+onSave={() => fetchContacts()}
+onClose={() => setShowClientForm(false)}
+/>
+)}
+
+{selectedContact && (
+<ClientDetail
+contact={selectedContact}
+onClose={() => setSelectedContact(null)}
+onSave={() => { fetchContacts(); setSelectedContact(null); }}
+/>
 )}
 </div>
 );
