@@ -53,17 +53,20 @@ const matchesStatus = filterStatus === 'all' || c.status === filterStatus;
 return matchesSearch && matchesType && matchesStatus;
 });
 
+const GREEN = '#2B5C2B';
+const GOLD = '#C9A227';
+
 const styles = {
 app: { fontFamily: 'Arial', backgroundColor: '#F4F6F9', minHeight: '100vh' },
-header: { backgroundColor: '#1B4F8A', padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
-headerTitle: { color: 'white', margin: 0, fontSize: '22px', fontWeight: 'bold' },
+header: { backgroundColor: GREEN, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
 body: { padding: '24px 32px' },
 toolbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
 search: { padding: '8px 14px', borderRadius: '6px', border: '1px solid #ccc', width: '280px', fontSize: '14px' },
-addBtn: { backgroundColor: '#1B4F8A', color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px' },
+addBtn: { backgroundColor: GOLD, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+exportBtn: { backgroundColor: GREEN, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
 card: { backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.1)', overflow: 'hidden' },
 table: { width: '100%', borderCollapse: 'collapse' },
-th: { backgroundColor: '#1B4F8A', color: 'white', padding: '12px 16px', textAlign: 'left', fontSize: '13px' },
+th: { backgroundColor: GREEN, color: 'white', padding: '12px 16px', textAlign: 'left', fontSize: '13px' },
 td: { padding: '12px 16px', borderBottom: '1px solid #F0F0F0', fontSize: '14px' },
 badge: (status) => ({
 backgroundColor: status === 'lead' ? '#FFF3CD' : status === 'active' ? '#D4EDDA' : status === 'prospect' ? '#CCE5FF' : '#F8D7DA',
@@ -88,10 +91,10 @@ if (!user) return <Login onLogin={handleLogin} />;
 return (
 <div style={styles.app}>
 <div style={styles.header}>
-<h1 style={styles.headerTitle}>PolicyDesk CRM</h1>
+<img src="/logo.png" alt="Comprehensive Health Solutions" style={{ height: '55px', objectFit: 'contain' }} />
 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-<span style={{ color: '#BDD5F5', fontSize: '14px' }}>Welcome, {user.name}</span>
-<button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: '1px solid #BDD5F5', color: '#BDD5F5', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>
+<span style={{ color: '#E8D5A3', fontSize: '14px' }}>Welcome, {user.name}</span>
+<button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: '1px solid #C9A227', color: '#C9A227', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>
 Sign Out
 </button>
 </div>
@@ -110,7 +113,7 @@ onClick={() => {
 const url = `http://localhost:5000/api/contacts/export?type=${filterType}&status=${filterStatus}`;
 window.open(url, '_blank');
 }}
-style={{ ...styles.addBtn, backgroundColor: '#198754' }}
+style={styles.exportBtn}
 >
 ⬇ Export CSV
 </button>
@@ -118,10 +121,9 @@ style={{ ...styles.addBtn, backgroundColor: '#198754' }}
 </div>
 </div>
 
-{/* Type Filter */}
 <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
 {[
-{ key: 'all', label: '👥 All Clients', color: '#1B4F8A' },
+{ key: 'all', label: '👥 All Clients', color: GREEN },
 { key: 'insurance', label: '🏥 Insurance', color: '#0d6efd' },
 { key: 'financial', label: '💰 Financial', color: '#198754' },
 { key: 'both', label: '⭐ Both', color: '#6f42c1' },
@@ -132,7 +134,6 @@ style={{ ...styles.addBtn, backgroundColor: '#198754' }}
 ))}
 </div>
 
-{/* Status Filter */}
 <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
 {[
 { key: 'all', label: 'All Status', color: '#555' },
@@ -169,7 +170,7 @@ filtered.map(contact => (
 <tr key={contact.id}
 onClick={() => setSelectedContact(contact)}
 style={{ cursor: 'pointer' }}
-onMouseEnter={e => e.currentTarget.style.backgroundColor = '#F8FAFF'}
+onMouseEnter={e => e.currentTarget.style.backgroundColor = '#F8FAF8'}
 onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}>
 <td style={{ ...styles.td, fontWeight: '600' }}>{contact.name}</td>
 <td style={styles.td}>{contact.email}</td>
