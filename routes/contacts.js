@@ -13,15 +13,49 @@ res.status(500).json({ error: 'Server error' });
 }
 });
 
+// GET export contacts as CSV
+router.get('/export', async (req, res) => {
+try {
+const { type, status } = req.query;
+let query = 'SELECT name, email, phone, address, dob, status, client_type, current_carrier, coverage_type, interested_coverage, current_financial_products, interested_financial_products FROM contacts WHERE 1=1';
+const params = [];
+
+if (type && type !== 'all') {
+params.push(type);
+query += ` AND client_type = $${params.length}`;
+}
+if (status && status !== 'all') {
+params.push(status);
+query += ` AND status = $${params.length}`;
+}
+
+query += ' ORDER BY name';
+const result = await pool.query(query, params);
+
+const headers = ['Name', 'Email', 'Phone', 'Address', 'DOB', 'Status', 'Client Type', 'Current Carrier', 'Coverage Type', 'Interested Coverage', 'Current Financial Products', 'Interested Financial Products'];
+const rows = result.rows.map(r => [
+r.name, r.email, r.phone, r.address, r.dob, r.status, r.client_type,
+r.current_carrier, r.coverage_type, r.interested_coverage,
+r.current_financial_products, r.interested_financial_products
+].map(val => `"${val || ''}"`).join(','));
+
+const csv = [headers.join(','), ...rows].join('\n');
+res.setHeader('Content-Type', 'text/csv');
+res.setHeader('Content-Disposition', 'attachment; filename=policydesk-export.csv');
+res.send(csv);
+} catch (err) {
+console.error(err);
+res.status(500).json({ error: 'Server error' });
+}
+});
+
 // POST create a new contact
 router.post('/', async (req, res) => {
 try {
 const { name, email, phone, address, dob, status, source, client_type, smoker, household_size, current_carrier, coverage_type, plan_type, renewal_date, interested_coverage, current_financial_products, interested_financial_products, retirement_goal_age, risk_tolerance, notes, last_contacted } = req.body;
-
 const result = await pool.query(
 'INSERT INTO contacts (name, email, phone, address, dob, status, source, client_type, smoker, household_size, current_carrier, coverage_type, plan_type, renewal_date, interested_coverage, current_financial_products, interested_financial_products, retirement_goal_age, risk_tolerance, notes, last_contacted) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21) RETURNING *',
 [name, email, phone, address, dob, status, source, client_type, smoker, household_size, current_carrier, coverage_type, plan_type, renewal_date, interested_coverage, current_financial_products, interested_financial_products, retirement_goal_age, risk_tolerance, notes, last_contacted]
-
 );
 res.json(result.rows[0]);
 } catch (err) {
@@ -29,6 +63,7 @@ console.error(err);
 res.status(500).json({ error: 'Server error' });
 }
 });
+
 // PUT update a contact
 router.put('/:id', async (req, res) => {
 try {
@@ -44,4 +79,5 @@ console.error(err);
 res.status(500).json({ error: 'Server error' });
 }
 });
+
 module.exports = router;

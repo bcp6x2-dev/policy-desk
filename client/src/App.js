@@ -10,6 +10,8 @@ const [loading, setLoading] = useState(true);
 const [search, setSearch] = useState('');
 const [showClientForm, setShowClientForm] = useState(false);
 const [selectedContact, setSelectedContact] = useState(null);
+const [filterType, setFilterType] = useState('all');
+const [filterStatus, setFilterStatus] = useState('all');
 
 useEffect(() => {
 const savedUser = localStorage.getItem('user');
@@ -41,11 +43,15 @@ setLoading(false);
 });
 }
 
-const filtered = contacts.filter(c =>
+const filtered = contacts.filter(c => {
+const matchesSearch =
 c.name?.toLowerCase().includes(search.toLowerCase()) ||
 c.email?.toLowerCase().includes(search.toLowerCase()) ||
-c.phone?.includes(search)
-);
+c.phone?.includes(search);
+const matchesType = filterType === 'all' || c.client_type === filterType;
+const matchesStatus = filterStatus === 'all' || c.status === filterStatus;
+return matchesSearch && matchesType && matchesStatus;
+});
 
 const styles = {
 app: { fontFamily: 'Arial', backgroundColor: '#F4F6F9', minHeight: '100vh' },
@@ -60,9 +66,20 @@ table: { width: '100%', borderCollapse: 'collapse' },
 th: { backgroundColor: '#1B4F8A', color: 'white', padding: '12px 16px', textAlign: 'left', fontSize: '13px' },
 td: { padding: '12px 16px', borderBottom: '1px solid #F0F0F0', fontSize: '14px' },
 badge: (status) => ({
-backgroundColor: status === 'lead' ? '#FFF3CD' : status === 'active' ? '#D4EDDA' : '#F8D7DA',
-color: status === 'lead' ? '#856404' : status === 'active' ? '#155724' : '#721C24',
+backgroundColor: status === 'lead' ? '#FFF3CD' : status === 'active' ? '#D4EDDA' : status === 'prospect' ? '#CCE5FF' : '#F8D7DA',
+color: status === 'lead' ? '#856404' : status === 'active' ? '#155724' : status === 'prospect' ? '#004085' : '#721C24',
 padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold'
+}),
+filterBtn: (active, color) => ({
+padding: '6px 14px',
+borderRadius: '20px',
+border: 'none',
+cursor: 'pointer',
+fontSize: '12px',
+fontWeight: active ? '700' : '400',
+backgroundColor: active ? color : 'white',
+color: active ? 'white' : '#555',
+boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
 }),
 };
 
@@ -88,8 +105,46 @@ Sign Out
 </div>
 <div style={{ display: 'flex', gap: '12px' }}>
 <input style={styles.search} placeholder="Search by name, email or phone..." value={search} onChange={e => setSearch(e.target.value)} />
+<button
+onClick={() => {
+const url = `http://localhost:5000/api/contacts/export?type=${filterType}&status=${filterStatus}`;
+window.open(url, '_blank');
+}}
+style={{ ...styles.addBtn, backgroundColor: '#198754' }}
+>
+⬇ Export CSV
+</button>
 <button style={styles.addBtn} onClick={() => setShowClientForm(true)}>+ Add Client</button>
 </div>
+</div>
+
+{/* Type Filter */}
+<div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
+{[
+{ key: 'all', label: '👥 All Clients', color: '#1B4F8A' },
+{ key: 'insurance', label: '🏥 Insurance', color: '#0d6efd' },
+{ key: 'financial', label: '💰 Financial', color: '#198754' },
+{ key: 'both', label: '⭐ Both', color: '#6f42c1' },
+].map(({ key, label, color }) => (
+<button key={key} onClick={() => setFilterType(key)} style={styles.filterBtn(filterType === key, color)}>
+{label}
+</button>
+))}
+</div>
+
+{/* Status Filter */}
+<div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+{[
+{ key: 'all', label: 'All Status', color: '#555' },
+{ key: 'lead', label: '🟡 Lead', color: '#856404' },
+{ key: 'prospect', label: '🔵 Prospect', color: '#004085' },
+{ key: 'active', label: '🟢 Active', color: '#155724' },
+{ key: 'inactive', label: '🔴 Inactive', color: '#721C24' },
+].map(({ key, label, color }) => (
+<button key={key} onClick={() => setFilterStatus(key)} style={styles.filterBtn(filterStatus === key, color)}>
+{label}
+</button>
+))}
 </div>
 
 <div style={styles.card}>
