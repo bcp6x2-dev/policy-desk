@@ -91,7 +91,10 @@ if (!user) return <Login onLogin={handleLogin} />;
 return (
 <div style={styles.app}>
 <div style={styles.header}>
-<img src="/logo.png" alt="Comprehensive Health Solutions" style={{ height: '55px', objectFit: 'contain' }} />
+<div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+<img src="/logo.png" alt="" style={{ height: '55px', objectFit: 'contain' }} onError={e => e.target.style.display='none'} />
+<span style={{ color: '#C9A227', fontWeight: 'bold', fontSize: '20px' }}>Comprehensive Health Solutions</span>
+</div>
 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 <span style={{ color: '#E8D5A3', fontSize: '14px' }}>Welcome, {user.name}</span>
 <button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: '1px solid #C9A227', color: '#C9A227', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>
