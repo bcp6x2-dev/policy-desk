@@ -14,7 +14,7 @@ setForm({ ...form, [name]: value });
 async function handleSave() {
 setSaving(true);
 try {
-const res = await fetch(`http://localhost:5000/api/contacts/${form.id}`, {
+const res = await fetch(`https://policy-desk-production.up.railway.app/api/contacts/${form.id}`, {
 method: 'PUT',
 headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify(form),
