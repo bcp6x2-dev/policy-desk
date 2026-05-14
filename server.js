@@ -5,7 +5,10 @@ require('dotenv').config();
 const app = express();
 const PORT = 5000;
 
-app.use(cors());
+app.use(cors({
+origin: ['https://pd-crm.netlify.app', 'http://localhost:3000', 'http://localhost:3001'],
+credentials: true
+}));
 app.use(express.json());
 const contactsRouter = require('./routes/contacts');
 app.use('/api/contacts', contactsRouter);
