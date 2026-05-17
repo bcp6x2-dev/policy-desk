@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import Login from './Login';
 import ClientForm from './ClientForm';
 import ClientDetail from './ClientDetail';
-
+import ImportTool from './ImportTool';
 function App() {
 const [user, setUser] = useState(null);
 const [contacts, setContacts] = useState([]);
 const [loading, setLoading] = useState(true);
 const [search, setSearch] = useState('');
 const [showClientForm, setShowClientForm] = useState(false);
+const [showImportTool, setShowImportTool] = useState(false);
 const [selectedContact, setSelectedContact] = useState(null);
 const [filterType, setFilterType] = useState('all');
 const [filterStatus, setFilterStatus] = useState('all');
@@ -35,7 +36,7 @@ setContacts([]);
 }
 
 function fetchContacts() {
-fetch('http://localhost:5000/api/contacts')
+fetch('https://policy-desk-production.up.railway.app/api/contacts')
 .then(res => res.json())
 .then(data => {
 setContacts(data);
@@ -113,11 +114,14 @@ Sign Out
 <input style={styles.search} placeholder="Search by name, email or phone..." value={search} onChange={e => setSearch(e.target.value)} />
 <button
 onClick={() => {
-const url = `http://localhost:5000/api/contacts/export?type=${filterType}&status=${filterStatus}`;
+const url = `https://policy-desk-production.up.railway.app/api/contacts/export?type=${filterType}&status=${filterStatus}`;
 window.open(url, '_blank');
 }}
 style={styles.exportBtn}
 >
+<button style={{ ...styles.exportBtn, backgroundColor: '#C9A227' }} onClick={() => setShowImport(true)}>
+📥 Import Excel
+</button>
 ⬇ Export CSV
 </button>
 <button style={styles.addBtn} onClick={() => setShowClientForm(true)}>+ Add Client</button>
@@ -206,5 +210,11 @@ onSave={() => { fetchContacts(); setSelectedContact(null); }}
 </div>
 );
 }
+{showImport && (
+<ImportTool
+onClose={() => setShowImport(false)}
+onImported={() => fetchContacts()}
+/>
+)}
 
 export default App;

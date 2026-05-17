@@ -14,6 +14,8 @@ const contactsRouter = require('./routes/contacts');
 app.use('/api/contacts', contactsRouter);
 const authRouter = require('./routes/auth');
 app.use('/api/auth', authRouter);
+const importRouter = require('./routes/import');
+app.use('/api/import', importRouter);
 app.get('/', (req, res) => {
   res.json({ message: 'PolicyDesk API is running!' });
 });
