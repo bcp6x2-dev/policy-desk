@@ -14,6 +14,8 @@ const [selectedContact, setSelectedContact] = useState(null);
 const [filterType, setFilterType] = useState('all');
 const [filterStatus, setFilterStatus] = useState('all');
 const [showImport, setShowImport] = useState(false);
+const [currentPage, setCurrentPage] = useState(1);
+const contactsPerPage = 25;
 
 useEffect(() => {
 const savedUser = localStorage.getItem('user');
@@ -24,6 +26,10 @@ else setLoading(false);
 useEffect(() => {
 if (user) fetchContacts();
 }, [user]);
+
+useEffect(() => {
+setCurrentPage(1);
+}, [search, filterType, filterStatus]);
 
 function handleLogin(loggedInUser) {
 setUser(loggedInUser);
@@ -54,6 +60,9 @@ const matchesType = filterType === 'all' || c.client_type === filterType;
 const matchesStatus = filterStatus === 'all' || c.status === filterStatus;
 return matchesSearch && matchesType && matchesStatus;
 });
+
+const totalPages = Math.ceil(filtered.length / contactsPerPage);
+const paginated = filtered.slice((currentPage - 1) * contactsPerPage, currentPage * contactsPerPage);
 
 const GREEN = '#2B5C2B';
 const GOLD = '#C9A227';
@@ -167,10 +176,10 @@ style={styles.exportBtn}
 </tr>
 </thead>
 <tbody>
-{filtered.length === 0 ? (
+{paginated.length === 0 ? (
 <tr><td colSpan="5" style={{ ...styles.td, textAlign: 'center', color: '#888' }}>No contacts found</td></tr>
 ) : (
-filtered.map(contact => (
+paginated.map(contact => (
 <tr key={contact.id}
 onClick={() => setSelectedContact(contact)}
 style={{ cursor: 'pointer' }}
@@ -187,6 +196,31 @@ onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}>
 </tbody>
 </table>
 )}
+</div>
+
+<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
+<span style={{ color: '#888', fontSize: '13px' }}>
+Showing {filtered.length === 0 ? 0 : ((currentPage - 1) * contactsPerPage) + 1} - {Math.min(currentPage * contactsPerPage, filtered.length)} of {filtered.length} contacts
+</span>
+<div style={{ display: 'flex', gap: '8px' }}>
+<button
+onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+disabled={currentPage === 1}
+style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #ccc', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', backgroundColor: 'white' }}
+>
+← Previous
+</button>
+<span style={{ padding: '6px 14px', fontSize: '14px', color: '#555' }}>
+Page {currentPage} of {totalPages}
+</span>
+<button
+onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+disabled={currentPage === totalPages}
+style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #ccc', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', backgroundColor: 'white' }}
+>
+Next →
+</button>
+</div>
 </div>
 </div>
 
