@@ -3,16 +3,17 @@ import Login from './Login';
 import ClientForm from './ClientForm';
 import ClientDetail from './ClientDetail';
 import ImportTool from './ImportTool';
+
 function App() {
 const [user, setUser] = useState(null);
 const [contacts, setContacts] = useState([]);
 const [loading, setLoading] = useState(true);
 const [search, setSearch] = useState('');
 const [showClientForm, setShowClientForm] = useState(false);
-const [showImportTool, setShowImportTool] = useState(false);
 const [selectedContact, setSelectedContact] = useState(null);
 const [filterType, setFilterType] = useState('all');
 const [filterStatus, setFilterStatus] = useState('all');
+const [showImport, setShowImport] = useState(false);
 
 useEffect(() => {
 const savedUser = localStorage.getItem('user');
@@ -65,6 +66,7 @@ toolbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center
 search: { padding: '8px 14px', borderRadius: '6px', border: '1px solid #ccc', width: '280px', fontSize: '14px' },
 addBtn: { backgroundColor: GOLD, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
 exportBtn: { backgroundColor: GREEN, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+importBtn: { backgroundColor: GOLD, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
 card: { backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.1)', overflow: 'hidden' },
 table: { width: '100%', borderCollapse: 'collapse' },
 th: { backgroundColor: GREEN, color: 'white', padding: '12px 16px', textAlign: 'left', fontSize: '13px' },
@@ -92,10 +94,7 @@ if (!user) return <Login onLogin={handleLogin} />;
 return (
 <div style={styles.app}>
 <div style={styles.header}>
-<div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-<img src="/logo.png" alt="" style={{ height: '55px', objectFit: 'contain' }} onError={e => e.target.style.display='none'} />
 <span style={{ color: '#C9A227', fontWeight: 'bold', fontSize: '20px' }}>Comprehensive Health Solutions</span>
-</div>
 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 <span style={{ color: '#E8D5A3', fontSize: '14px' }}>Welcome, {user.name}</span>
 <button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: '1px solid #C9A227', color: '#C9A227', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>
@@ -112,6 +111,7 @@ Sign Out
 </div>
 <div style={{ display: 'flex', gap: '12px' }}>
 <input style={styles.search} placeholder="Search by name, email or phone..." value={search} onChange={e => setSearch(e.target.value)} />
+<button style={styles.importBtn} onClick={() => setShowImport(true)}>📥 Import Excel</button>
 <button
 onClick={() => {
 const url = `https://policy-desk-production.up.railway.app/api/contacts/export?type=${filterType}&status=${filterStatus}`;
@@ -119,9 +119,6 @@ window.open(url, '_blank');
 }}
 style={styles.exportBtn}
 >
-<button style={{ ...styles.exportBtn, backgroundColor: '#C9A227' }} onClick={() => setShowImport(true)}>
-📥 Import Excel
-</button>
 ⬇ Export CSV
 </button>
 <button style={styles.addBtn} onClick={() => setShowClientForm(true)}>+ Add Client</button>
@@ -207,14 +204,15 @@ onClose={() => setSelectedContact(null)}
 onSave={() => { fetchContacts(); setSelectedContact(null); }}
 />
 )}
-</div>
-);
-}
+
 {showImport && (
 <ImportTool
 onClose={() => setShowImport(false)}
 onImported={() => fetchContacts()}
 />
 )}
+</div>
+);
+}
 
 export default App;
