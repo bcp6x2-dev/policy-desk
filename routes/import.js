@@ -6,7 +6,6 @@ const pool = require('../db');
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-// POST /api/import/preview - upload and preview columns
 router.post('/preview', upload.single('file'), async (req, res) => {
 try {
 const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
@@ -28,7 +27,6 @@ res.status(500).json({ error: 'Failed to read file' });
 }
 });
 
-// POST /api/import/confirm - import all rows
 router.post('/confirm', upload.single('file'), async (req, res) => {
 try {
 const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
@@ -45,25 +43,33 @@ let skipped = 0;
 
 for (const row of rows) {
 const rowObj = {};
-headers.forEach((h, i) => rowObj[h] = row[i] || '');
+headers.forEach((h, i) => rowObj[h] = row[i] !== undefined ? String(row[i]).trim() : '');
 
-const contact = {
-name: rowObj[mapping.name] || '',
-email: rowObj[mapping.email] || '',
-phone: rowObj[mapping.phone] || '',
-address: rowObj[mapping.address] || '',
-dob: rowObj[mapping.dob] || null,
-status: 'lead',
-source: 'imported',
-client_type: 'insurance',
-};
+const name = rowObj[mapping.name] || '';
+const email = rowObj[mapping.email] || '';
+const phone = rowObj[mapping.phone] || '';
+const address = rowObj[mapping.address] || '';
+const dobRaw = rowObj[mapping.dob] || '';
 
-if (!contact.name) { skipped++; continue; }
+if (!name) { skipped++; continue; }
+
+let dob = null;
+if (dobRaw) {
+try {
+if (typeof dobRaw === 'number') {
+const date = XLSX.SSF.parse_date_code(dobRaw);
+dob = `${date.y}-${String(date.m).padStart(2,'0')}-${String(date.d).padStart(2,'0')}`;
+} else {
+const parsed = new Date(dobRaw);
+if (!isNaN(parsed)) dob = parsed.toISOString().split('T')[0];
+}
+} catch(e) { dob = null; }
+}
 
 try {
 await pool.query(
 'INSERT INTO contacts (name, email, phone, address, dob, status, source, client_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-[contact.name, contact.email, contact.phone, contact.address, contact.dob, contact.status, contact.source, contact.client_type]
+[name, email || null, phone || null, address || null, dob, 'lead', 'imported', 'insurance']
 );
 imported++;
 } catch (e) {
