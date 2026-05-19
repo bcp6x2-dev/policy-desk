@@ -3,6 +3,7 @@ import Login from './Login';
 import ClientForm from './ClientForm';
 import ClientDetail from './ClientDetail';
 import ImportTool from './ImportTool';
+import Dashboard from './Dashboard';
 
 function App() {
 const [user, setUser] = useState(null);
@@ -14,6 +15,7 @@ const [selectedContact, setSelectedContact] = useState(null);
 const [filterType, setFilterType] = useState('all');
 const [filterStatus, setFilterStatus] = useState('all');
 const [showImport, setShowImport] = useState(false);
+const [showDashboard, setShowDashboard] = useState(false);
 const [currentPage, setCurrentPage] = useState(1);
 const contactsPerPage = 25;
 
@@ -76,6 +78,7 @@ search: { padding: '8px 14px', borderRadius: '6px', border: '1px solid #ccc', wi
 addBtn: { backgroundColor: GOLD, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
 exportBtn: { backgroundColor: GREEN, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
 importBtn: { backgroundColor: GOLD, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+dashBtn: { backgroundColor: GREEN, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
 card: { backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.1)', overflow: 'hidden' },
 table: { width: '100%', borderCollapse: 'collapse' },
 th: { backgroundColor: GREEN, color: 'white', padding: '12px 16px', textAlign: 'left', fontSize: '13px' },
@@ -106,6 +109,7 @@ return (
 <span style={{ color: '#C9A227', fontWeight: 'bold', fontSize: '20px' }}>Comprehensive Health Solutions</span>
 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 <span style={{ color: '#E8D5A3', fontSize: '14px' }}>Welcome, {user.name}</span>
+<button onClick={() => setShowDashboard(true)} style={styles.dashBtn}>📊 Dashboard</button>
 <button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: '1px solid #C9A227', color: '#C9A227', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>
 Sign Out
 </button>
@@ -243,6 +247,13 @@ onSave={() => { fetchContacts(); setSelectedContact(null); }}
 <ImportTool
 onClose={() => setShowImport(false)}
 onImported={() => fetchContacts()}
+/>
+)}
+
+{showDashboard && (
+<Dashboard
+contacts={contacts}
+onClose={() => setShowDashboard(false)}
 />
 )}
 </div>
