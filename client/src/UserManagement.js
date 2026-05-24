@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const API = 'https://policy-desk-production.up.railway.app';
 
-function UserManagement({ onClose, token }) {
+function UserManagement({ onClose }) {
 const [users, setUsers] = useState([]);
 const [loading, setLoading] = useState(true);
 const [showForm, setShowForm] = useState(false);
@@ -13,6 +13,7 @@ const [error, setError] = useState('');
 
 const GREEN = '#2B5C2B';
 const GOLD = '#C9A227';
+const token = localStorage.getItem('token');
 
 const s = {
 overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
@@ -41,20 +42,9 @@ errorMsg: { backgroundColor: '#F8D7DA', color: '#721C24', padding: '10px', borde
 };
 
 useEffect(() => {
-async function loadUsers() {
-try {
-const res = await fetch(`${API}/api/users`, {
-headers: { Authorization: `Bearer ${token}` }
-});
-const data = await res.json();
-setUsers(data);
-setLoading(false);
-} catch (err) {
-setLoading(false);
-}
-}
-loadUsers();
-}, [token]);
+fetchUsers();
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
 
 async function fetchUsers() {
 try {
@@ -62,7 +52,7 @@ const res = await fetch(`${API}/api/users`, {
 headers: { Authorization: `Bearer ${token}` }
 });
 const data = await res.json();
-setUsers(data);
+setUsers(Array.isArray(data) ? data : []);
 setLoading(false);
 } catch (err) {
 setLoading(false);
@@ -135,6 +125,8 @@ return (
 
 {loading ? (
 <p>Loading users...</p>
+) : users.length === 0 ? (
+<p style={{ color: '#888', textAlign: 'center', padding: '20px' }}>No users found. Make sure you are logged in as Admin.</p>
 ) : (
 <table style={s.table}>
 <thead>
@@ -181,7 +173,7 @@ return (
 <input style={s.input} type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
 {!editUser && <>
 <label style={s.label}>Temporary Password *</label>
-<input style={s.input} type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required={!editUser} placeholder="They can change this after login" />
+<input style={s.input} type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required placeholder="They can change this after login" />
 </>}
 <label style={s.label}>Role *</label>
 <select style={s.select} value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
