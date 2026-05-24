@@ -26,6 +26,7 @@ setLoading(false);
 return;
 }
 
+console.log('Login response:', data);
 localStorage.setItem('token', data.token);
 localStorage.setItem('user', JSON.stringify(data.user));
 onLogin(data.user);
