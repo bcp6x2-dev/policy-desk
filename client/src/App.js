@@ -4,9 +4,11 @@ import ClientForm from './ClientForm';
 import ClientDetail from './ClientDetail';
 import ImportTool from './ImportTool';
 import Dashboard from './Dashboard';
+import UserManagement from './UserManagement';
 
 function App() {
 const [user, setUser] = useState(null);
+const [token, setToken] = useState(null);
 const [contacts, setContacts] = useState([]);
 const [loading, setLoading] = useState(true);
 const [search, setSearch] = useState('');
@@ -16,12 +18,15 @@ const [filterType, setFilterType] = useState('all');
 const [filterStatus, setFilterStatus] = useState('all');
 const [showImport, setShowImport] = useState(false);
 const [showDashboard, setShowDashboard] = useState(false);
+const [showUsers, setShowUsers] = useState(false);
 const [currentPage, setCurrentPage] = useState(1);
 const contactsPerPage = 25;
 
 useEffect(() => {
 const savedUser = localStorage.getItem('user');
+const savedToken = localStorage.getItem('token');
 if (savedUser) setUser(JSON.parse(savedUser));
+if (savedToken) setToken(savedToken);
 else setLoading(false);
 }, []);
 
@@ -35,12 +40,14 @@ setCurrentPage(1);
 
 function handleLogin(loggedInUser) {
 setUser(loggedInUser);
+setToken(localStorage.getItem('token'));
 }
 
 function handleLogout() {
 localStorage.removeItem('token');
 localStorage.removeItem('user');
 setUser(null);
+setToken(null);
 setContacts([]);
 }
 
@@ -79,6 +86,7 @@ addBtn: { backgroundColor: GOLD, color: 'white', border: 'none', padding: '9px 1
 exportBtn: { backgroundColor: GREEN, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
 importBtn: { backgroundColor: GOLD, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
 dashBtn: { backgroundColor: GREEN, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+usersBtn: { backgroundColor: 'transparent', border: '1px solid #C9A227', color: '#C9A227', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' },
 card: { backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.1)', overflow: 'hidden' },
 table: { width: '100%', borderCollapse: 'collapse' },
 th: { backgroundColor: GREEN, color: 'white', padding: '12px 16px', textAlign: 'left', fontSize: '13px' },
@@ -89,15 +97,9 @@ color: status === 'lead' ? '#856404' : status === 'active' ? '#155724' : status 
 padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 'bold'
 }),
 filterBtn: (active, color) => ({
-padding: '6px 14px',
-borderRadius: '20px',
-border: 'none',
-cursor: 'pointer',
-fontSize: '12px',
-fontWeight: active ? '700' : '400',
-backgroundColor: active ? color : 'white',
-color: active ? 'white' : '#555',
-boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+padding: '6px 14px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '12px',
+fontWeight: active ? '700' : '400', backgroundColor: active ? color : 'white',
+color: active ? 'white' : '#555', boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
 }),
 };
 
@@ -107,9 +109,12 @@ return (
 <div style={styles.app}>
 <div style={styles.header}>
 <span style={{ color: '#C9A227', fontWeight: 'bold', fontSize: '20px' }}>Financial Consulting Network, LLC</span>
-<div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+<div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
 <span style={{ color: '#E8D5A3', fontSize: '14px' }}>Welcome, {user.name}</span>
 <button onClick={() => setShowDashboard(true)} style={styles.dashBtn}>📊 Dashboard</button>
+{user.role === 'admin' && (
+<button onClick={() => setShowUsers(true)} style={styles.usersBtn}>👥 Manage Users</button>
+)}
 <button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: '1px solid #C9A227', color: '#C9A227', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>
 Sign Out
 </button>
@@ -125,15 +130,7 @@ Sign Out
 <div style={{ display: 'flex', gap: '12px' }}>
 <input style={styles.search} placeholder="Search by name, email or phone..." value={search} onChange={e => setSearch(e.target.value)} />
 <button style={styles.importBtn} onClick={() => setShowImport(true)}>📥 Import Excel</button>
-<button
-onClick={() => {
-const url = `https://policy-desk-production.up.railway.app/api/contacts/export?type=${filterType}&status=${filterStatus}`;
-window.open(url, '_blank');
-}}
-style={styles.exportBtn}
->
-⬇ Export CSV
-</button>
+<button onClick={() => { const url = `https://policy-desk-production.up.railway.app/api/contacts/export?type=${filterType}&status=${filterStatus}`; window.open(url, '_blank'); }} style={styles.exportBtn}>⬇ Export CSV</button>
 <button style={styles.addBtn} onClick={() => setShowClientForm(true)}>+ Add Client</button>
 </div>
 </div>
@@ -145,9 +142,7 @@ style={styles.exportBtn}
 { key: 'financial', label: '💰 Financial', color: '#198754' },
 { key: 'both', label: '⭐ Both', color: '#6f42c1' },
 ].map(({ key, label, color }) => (
-<button key={key} onClick={() => setFilterType(key)} style={styles.filterBtn(filterType === key, color)}>
-{label}
-</button>
+<button key={key} onClick={() => setFilterType(key)} style={styles.filterBtn(filterType === key, color)}>{label}</button>
 ))}
 </div>
 
@@ -159,9 +154,7 @@ style={styles.exportBtn}
 { key: 'active', label: '🟢 Active', color: '#155724' },
 { key: 'inactive', label: '🔴 Inactive', color: '#721C24' },
 ].map(({ key, label, color }) => (
-<button key={key} onClick={() => setFilterStatus(key)} style={styles.filterBtn(filterStatus === key, color)}>
-{label}
-</button>
+<button key={key} onClick={() => setFilterStatus(key)} style={styles.filterBtn(filterStatus === key, color)}>{label}</button>
 ))}
 </div>
 
@@ -184,9 +177,7 @@ style={styles.exportBtn}
 <tr><td colSpan="5" style={{ ...styles.td, textAlign: 'center', color: '#888' }}>No contacts found</td></tr>
 ) : (
 paginated.map(contact => (
-<tr key={contact.id}
-onClick={() => setSelectedContact(contact)}
-style={{ cursor: 'pointer' }}
+<tr key={contact.id} onClick={() => setSelectedContact(contact)} style={{ cursor: 'pointer' }}
 onMouseEnter={e => e.currentTarget.style.backgroundColor = '#F8FAF8'}
 onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}>
 <td style={{ ...styles.td, fontWeight: '600' }}>{contact.name}</td>
@@ -207,33 +198,20 @@ onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}>
 Showing {filtered.length === 0 ? 0 : ((currentPage - 1) * contactsPerPage) + 1} - {Math.min(currentPage * contactsPerPage, filtered.length)} of {filtered.length} contacts
 </span>
 <div style={{ display: 'flex', gap: '8px' }}>
-<button
-onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-disabled={currentPage === 1}
-style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #ccc', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', backgroundColor: 'white' }}
->
+<button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
+style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #ccc', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', backgroundColor: 'white' }}>
 ← Previous
 </button>
-<span style={{ padding: '6px 14px', fontSize: '14px', color: '#555' }}>
-Page {currentPage} of {totalPages}
-</span>
-<button
-onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-disabled={currentPage === totalPages}
-style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #ccc', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', backgroundColor: 'white' }}
->
+<span style={{ padding: '6px 14px', fontSize: '14px', color: '#555' }}>Page {currentPage} of {totalPages}</span>
+<button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
+style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #ccc', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', backgroundColor: 'white' }}>
 Next →
 </button>
 </div>
 </div>
 </div>
 
-{showClientForm && (
-<ClientForm
-onSave={() => fetchContacts()}
-onClose={() => setShowClientForm(false)}
-/>
-)}
+{showClientForm && <ClientForm onSave={() => fetchContacts()} onClose={() => setShowClientForm(false)} />}
 
 {selectedContact && (
 <ClientDetail
@@ -243,19 +221,11 @@ onSave={() => { fetchContacts(); setSelectedContact(null); }}
 />
 )}
 
-{showImport && (
-<ImportTool
-onClose={() => setShowImport(false)}
-onImported={() => fetchContacts()}
-/>
-)}
+{showImport && <ImportTool onClose={() => setShowImport(false)} onImported={() => fetchContacts()} />}
 
-{showDashboard && (
-<Dashboard
-contacts={contacts}
-onClose={() => setShowDashboard(false)}
-/>
-)}
+{showDashboard && <Dashboard contacts={contacts} onClose={() => setShowDashboard(false)} />}
+
+{showUsers && <UserManagement token={token} onClose={() => setShowUsers(false)} />}
 </div>
 );
 }
