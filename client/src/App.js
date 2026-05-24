@@ -27,7 +27,7 @@ const savedUser = localStorage.getItem('user');
 const savedToken = localStorage.getItem('token');
 if (savedUser) setUser(JSON.parse(savedUser));
 if (savedToken) setToken(savedToken);
-else setLoading(false);
+setLoading(false);
 }, []);
 
 useEffect(() => {
@@ -40,7 +40,8 @@ setCurrentPage(1);
 
 function handleLogin(loggedInUser) {
 setUser(loggedInUser);
-setToken(localStorage.getItem('token'));
+const t = localStorage.getItem('token');
+setToken(t);
 }
 
 function handleLogout() {
