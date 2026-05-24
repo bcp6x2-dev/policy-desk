@@ -106,7 +106,7 @@ if (!user) return <Login onLogin={handleLogin} />;
 return (
 <div style={styles.app}>
 <div style={styles.header}>
-<span style={{ color: '#C9A227', fontWeight: 'bold', fontSize: '20px' }}>Comprehensive Health Solutions</span>
+<span style={{ color: '#C9A227', fontWeight: 'bold', fontSize: '20px' }}>Financial Consulting Network, LLC</span>
 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
 <span style={{ color: '#E8D5A3', fontSize: '14px' }}>Welcome, {user.name}</span>
 <button onClick={() => setShowDashboard(true)} style={styles.dashBtn}>📊 Dashboard</button>
