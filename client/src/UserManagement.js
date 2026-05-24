@@ -41,8 +41,20 @@ errorMsg: { backgroundColor: '#F8D7DA', color: '#721C24', padding: '10px', borde
 };
 
 useEffect(() => {
-fetchUsers();
-}, []);
+async function loadUsers() {
+try {
+const res = await fetch(`${API}/api/users`, {
+headers: { Authorization: `Bearer ${token}` }
+});
+const data = await res.json();
+setUsers(data);
+setLoading(false);
+} catch (err) {
+setLoading(false);
+}
+}
+loadUsers();
+}, [token]);
 
 async function fetchUsers() {
 try {
