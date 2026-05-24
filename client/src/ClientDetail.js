@@ -233,6 +233,20 @@ return (
 </div>
 
 <div style={s.footer}>
+<button
+style={{ ...s.closeBtn, backgroundColor: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB' }}
+onClick={async () => {
+if (window.confirm(`Are you sure you want to delete ${form.name}? This cannot be undone.`)) {
+await fetch(`https://policy-desk-production.up.railway.app/api/contacts/${form.id}`, {
+method: 'DELETE'
+});
+onSave();
+onClose();
+}
+}}
+>
+🗑 Delete Contact
+</button>
 <button style={s.closeBtn} onClick={onClose}>Close</button>
 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
 {saved && <span style={s.savedMsg}>✓ Saved successfully!</span>}

@@ -157,6 +157,20 @@ return (
 </div>
 
 <div style={s.footer}>
+<button
+style={{ ...s.closeBtn, backgroundColor: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', marginRight: 'auto' }}
+onClick={async () => {
+if (window.confirm(`Are you sure you want to DELETE ALL ${total} contacts? This cannot be undone.`)) {
+await fetch('https://policy-desk-production.up.railway.app/api/contacts', {
+method: 'DELETE'
+});
+onClose();
+window.location.reload();
+}
+}}
+>
+🗑 Delete All Contacts
+</button>
 <button style={s.closeBtn} onClick={onClose}>Close Dashboard</button>
 </div>
 </div>

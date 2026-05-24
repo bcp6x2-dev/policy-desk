@@ -80,4 +80,27 @@ res.status(500).json({ error: 'Server error' });
 }
 });
 
+// DELETE a single contact
+router.delete('/:id', async (req, res) => {
+try {
+const { id } = req.params;
+await pool.query('DELETE FROM contacts WHERE id = $1', [id]);
+res.json({ message: 'Contact deleted' });
+} catch (err) {
+console.error(err);
+res.status(500).json({ error: 'Server error' });
+}
+});
+
+// DELETE all contacts
+router.delete('/', async (req, res) => {
+try {
+await pool.query('DELETE FROM contacts');
+res.json({ message: 'All contacts deleted' });
+} catch (err) {
+console.error(err);
+res.status(500).json({ error: 'Server error' });
+}
+});
+
 module.exports = router;
