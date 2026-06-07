@@ -12,6 +12,7 @@ risk_tolerance: '', notes: '', last_contacted: ''
 });
 
 const [activeTab, setActiveTab] = useState('demographics');
+const [error, setError] = useState('');
 
 function handleChange(e) {
 const { name, value, type, checked } = e.target;
@@ -20,27 +21,38 @@ setForm({ ...form, [name]: type === 'checkbox' ? checked : value });
 
 async function handleSubmit(e) {
 e.preventDefault();
+setError('');
 try {
-const res = await fetch('http://localhost:5000/api/contacts', {
+const token = localStorage.getItem('token');
+const res = await fetch('https://policy-desk-production.up.railway.app/api/contacts', {
 method: 'POST',
-headers: { 'Content-Type': 'application/json' },
+headers: {
+'Content-Type': 'application/json',
+'Authorization': `Bearer ${token}`
+},
 body: JSON.stringify(form),
 });
+if (!res.ok) {
+const err = await res.json();
+setError(err.message || 'Failed to save client.');
+return;
+}
 const data = await res.json();
 onSave(data);
 onClose();
 } catch (err) {
 console.error(err);
+setError('Network error. Please try again.');
 }
 }
 
 const s = {
 overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
 modal: { backgroundColor: 'white', borderRadius: '12px', width: '620px', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' },
-header: { backgroundColor: '#1B4F8A', padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+header: { backgroundColor: '#2B5C2B', padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
 headerTitle: { color: 'white', margin: 0, fontSize: '18px', fontWeight: 'bold' },
 tabs: { display: 'flex', borderBottom: '2px solid #E0E0E0', backgroundColor: '#F8F9FA' },
-tab: (active) => ({ padding: '12px 20px', cursor: 'pointer', fontSize: '13px', fontWeight: active ? '700' : '400', color: active ? '#1B4F8A' : '#666', borderBottom: active ? '2px solid #1B4F8A' : 'none', backgroundColor: 'transparent', border: 'none', marginBottom: '-2px' }),
+tab: (active) => ({ padding: '12px 20px', cursor: 'pointer', fontSize: '13px', fontWeight: active ? '700' : '400', color: active ? '#2B5C2B' : '#666', borderBottom: active ? '2px solid #2B5C2B' : 'none', backgroundColor: 'transparent', border: 'none', marginBottom: '-2px' }),
 body: { padding: '24px', overflowY: 'auto', flex: 1, maxHeight: '60vh' },
 row: { display: 'flex', gap: '12px', marginBottom: '12px' },
 col: { flex: 1 },
@@ -48,10 +60,11 @@ label: { display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '6
 input: { width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' },
 select: { width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' },
 textarea: { width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box', minHeight: '80px', resize: 'vertical' },
-sectionTitle: { fontSize: '13px', fontWeight: '700', color: '#1B4F8A', textTransform: 'uppercase', marginBottom: '12px', paddingBottom: '6px', borderBottom: '1px solid #E8F0FA' },
-footer: { padding: '16px 24px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: '10px' },
+sectionTitle: { fontSize: '13px', fontWeight: '700', color: '#2B5C2B', textTransform: 'uppercase', marginBottom: '12px', paddingBottom: '6px', borderBottom: '1px solid #E8F0FA' },
+footer: { padding: '16px 24px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' },
 cancelBtn: { padding: '9px 18px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', fontSize: '14px', backgroundColor: 'white' },
-saveBtn: { padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: '#1B4F8A', color: 'white', fontWeight: '600' },
+saveBtn: { padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: '#C9A227', color: 'white', fontWeight: '600' },
+errorMsg: { color: '#c0392b', fontSize: '13px' },
 };
 
 return (
@@ -236,8 +249,11 @@ return (
 </div>
 
 <div style={s.footer}>
+<span style={s.errorMsg}>{error}</span>
+<div style={{ display: 'flex', gap: '10px' }}>
 <button type="button" style={s.cancelBtn} onClick={onClose}>Cancel</button>
 <button type="submit" style={s.saveBtn}>Save Client</button>
+</div>
 </div>
 </form>
 </div>
