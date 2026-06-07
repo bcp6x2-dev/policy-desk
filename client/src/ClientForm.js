@@ -426,7 +426,7 @@ function ClientForm({ onSave, onClose }) {
                 <p style={s.sectionTitle}>Notes & Activity</p>
                 <label style={s.label}>Notes</label>
                 <textarea style={s.textarea} name="notes" value={form.notes} onChange={handleChange} placeholder="Add notes about this client..." />
-                <label style={s.label} style={{ marginTop: '10px' }}>Last Contacted</label>
+                <label style={{ ...s.label, marginTop: '10px' }}>Last Contacted</label>
                 <input style={s.input} type="date" name="last_contacted" value={form.last_contacted} onChange={handleChange} />
               </div>
             )}
