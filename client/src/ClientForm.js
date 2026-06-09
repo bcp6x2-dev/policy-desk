@@ -90,12 +90,12 @@ function ClientForm({ onSave, onClose }) {
 
   const s = {
     overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-    modal: { backgroundColor: 'white', borderRadius: '12px', width: '90vw', maxWidth: '720px', maxHeight: '92vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' },
+    modal: { backgroundColor: 'white', borderRadius: '12px', width: '90vw', maxWidth: '720px', height: '92vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' },
     header: { backgroundColor: GREEN, padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
     headerTitle: { color: 'white', margin: 0, fontSize: '18px', fontWeight: 'bold' },
     tabs: { display: 'flex', borderBottom: '2px solid #E0E0E0', backgroundColor: '#F8F9FA', overflowX: 'auto', flexShrink: 0 },
     tab: (active) => ({ padding: '12px 14px', cursor: 'pointer', fontSize: '12px', fontWeight: active ? '700' : '400', color: active ? GREEN : '#666', borderBottom: active ? '2px solid ' + GREEN : 'none', backgroundColor: 'transparent', border: 'none', marginBottom: '-2px', whiteSpace: 'nowrap' }),
-    body: { padding: '24px', overflowY: 'auto', flex: 1, minHeight: 0 },
+    body: { padding: '24px', overflowY: 'scroll', flex: '1 1 0', minHeight: 0 },
     row: { display: 'flex', gap: '12px', marginBottom: '12px' },
     col: { flex: 1 },
     label: { display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#555', textTransform: 'uppercase' },
