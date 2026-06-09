@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { writeFileXLSX } from 'xlsx';
 
 function ClientForm({ onSave, onClose }) {
   const [form, setForm] = useState({
@@ -94,9 +93,9 @@ function ClientForm({ onSave, onClose }) {
     modal: { backgroundColor: 'white', borderRadius: '12px', width: '90vw', maxWidth: '720px', maxHeight: '92vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' },
     header: { backgroundColor: GREEN, padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
     headerTitle: { color: 'white', margin: 0, fontSize: '18px', fontWeight: 'bold' },
-    tabs: { display: 'flex', borderBottom: '2px solid #E0E0E0', backgroundColor: '#F8F9FA', overflowX: 'auto' }, FLEXShrink: 0 },
-    tab: (active) => ({ padding: '12px 14px', cursor: 'pointer', fontSize: '12px', fontWeight: active ? '700' : '400', color: active ? GREEN : '#666', borderBottom: active ? `2px solid ${GREEN}` : 'none', backgroundColor: 'transparent', border: 'none', marginBottom: '-2px', whiteSpace: 'nowrap' }),
-    body: { padding: '24px', overflowY: 'auto', flex: 1, maxHeight: '60vh' },
+    tabs: { display: 'flex', borderBottom: '2px solid #E0E0E0', backgroundColor: '#F8F9FA', overflowX: 'auto', flexShrink: 0 },
+    tab: (active) => ({ padding: '12px 14px', cursor: 'pointer', fontSize: '12px', fontWeight: active ? '700' : '400', color: active ? GREEN : '#666', borderBottom: active ? '2px solid ' + GREEN : 'none', backgroundColor: 'transparent', border: 'none', marginBottom: '-2px', whiteSpace: 'nowrap' }),
+    body: { padding: '24px', overflowY: 'auto', flex: 1 },
     row: { display: 'flex', gap: '12px', marginBottom: '12px' },
     col: { flex: 1 },
     label: { display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#555', textTransform: 'uppercase' },
@@ -107,7 +106,7 @@ function ClientForm({ onSave, onClose }) {
     conditionalBox: { backgroundColor: '#F8FAF8', border: '1px solid #D0E4D0', borderRadius: '8px', padding: '16px', marginBottom: '12px' },
     mutedBox: { backgroundColor: '#F5F5F5', border: '1px solid #E0E0E0', borderRadius: '8px', padding: '12px', marginBottom: '12px', color: '#888', fontSize: '13px', fontStyle: 'italic' },
     physicianCard: { border: '1px solid #E0E0E0', borderRadius: '8px', padding: '12px', marginBottom: '8px', backgroundColor: '#FAFAFA', position: 'relative' },
-    addBtn: { backgroundColor: 'transparent', border: `1px solid ${GREEN}`, color: GREEN, padding: '7px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', marginBottom: '12px' },
+    addBtn: { backgroundColor: 'transparent', border: '1px solid ' + GREEN, color: GREEN, padding: '7px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', marginBottom: '12px' },
     removeBtn: { position: 'absolute', top: '10px', right: '10px', background: 'none', border: 'none', color: '#c0392b', cursor: 'pointer', fontSize: '16px', fontWeight: 'bold' },
     footer: { padding: '16px 24px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
     cancelBtn: { padding: '9px 18px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', fontSize: '14px', backgroundColor: 'white' },
@@ -119,7 +118,6 @@ function ClientForm({ onSave, onClose }) {
   const healthCarriers = ['Aetna','Anthem','Cigna','Devoted','Essence','Humana','United Health'];
   const healthPlanTypes = ['HMO','PPO','EPO','Medicare Advantage','Medicare Supplement Insurance','Other'];
   const pharmacies = ['CVS','Walgreens','Walmart',"Sam's Club",'Costco','Rite Aid','Other'];
-
   const isMarried = form.is_married === true || form.is_married === 'true';
 
   return (
@@ -531,7 +529,7 @@ function ClientForm({ onSave, onClose }) {
           </div>
         </form>
       </div>
-    </div>
+      </div>
   );
 }
 
