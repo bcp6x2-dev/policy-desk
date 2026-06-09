@@ -95,7 +95,7 @@ function ClientForm({ onSave, onClose }) {
     headerTitle: { color: 'white', margin: 0, fontSize: '18px', fontWeight: 'bold' },
     tabs: { display: 'flex', borderBottom: '2px solid #E0E0E0', backgroundColor: '#F8F9FA', overflowX: 'auto', flexShrink: 0 },
     tab: (active) => ({ padding: '12px 14px', cursor: 'pointer', fontSize: '12px', fontWeight: active ? '700' : '400', color: active ? GREEN : '#666', borderBottom: active ? '2px solid ' + GREEN : 'none', backgroundColor: 'transparent', border: 'none', marginBottom: '-2px', whiteSpace: 'nowrap' }),
-    body: { padding: '24px', overflowY: 'auto', flex: 1 },
+    body: { padding: '24px', overflowY: 'auto', flex: 1, minHeight: 0 },
     row: { display: 'flex', gap: '12px', marginBottom: '12px' },
     col: { flex: 1 },
     label: { display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#555', textTransform: 'uppercase' },
