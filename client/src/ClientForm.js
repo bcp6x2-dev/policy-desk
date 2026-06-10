@@ -18,9 +18,9 @@ function ClientForm({ onSave, onClose }) {
     pharmacy_name: '', pharmacy_other: '', pharmacy_address: '', pharmacy_phone: '',
     spouse_health_carrier: '', spouse_health_plan_type: '', spouse_health_plan_type_other: '', spouse_plan_start_date: '',
     life_carrier: '', life_carrier_other: '', life_plan_type: '', coverage_type: '', interested_coverage: '', life_plan_start_date: '',
-    current_financial_products: '', interested_financial_products: '', retirement_goal_age: '', risk_tolerance: '',
-financial_carrier: '', financial_carrier_other: '', financial_plan_start_date: '',
-current_financial_products_list: []
+    current_financial_products: '', current_financial_products_list: [],
+    financial_carrier: '', financial_carrier_other: '', financial_plan_start_date: '',
+    interested_financial_products: '', retirement_goal_age: '', risk_tolerance: '',
     notes: '', last_contacted: ''
   });
 
@@ -67,6 +67,7 @@ current_financial_products_list: []
         client_types: form.client_types.join(','),
         physician_name: form.physicians.map(p => p.name).join('; '),
         physician_specialty: form.physicians.map(p => p.specialty).join('; '),
+        current_financial_products: form.current_financial_products_list.join(', '),
       };
       const res = await fetch('https://policy-desk-production.up.railway.app/api/contacts', {
         method: 'POST',
@@ -94,6 +95,8 @@ current_financial_products_list: []
   const healthCarriers = ['Aetna','Anthem','Cigna','Devoted','Essence','Humana','United Health'];
   const healthPlanTypes = ['HMO','PPO','EPO','Medicare Advantage','Medicare Supplement Insurance','Other'];
   const pharmacies = ['CVS','Walgreens','Walmart',"Sam's Club",'Costco','Rite Aid','Other'];
+  const financialCarriers = ['American Equity Inv.','American General','Equitrust','F&G','Mass Mutual','Nationwide','Silac','Other'];
+  const financialProducts = ['Annuity','Indexed Universal Life (IUL)','Whole Life','Term Life','Mutual Funds','401(k) / IRA','CD / Savings','Other'];
   const isMarried = form.is_married === true || form.is_married === 'true';
 
   const input = { width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' };
@@ -109,13 +112,11 @@ current_financial_products_list: []
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
       <div style={{ backgroundColor: 'white', borderRadius: '12px', width: '90vw', maxWidth: '720px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 30px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
 
-        {/* HEADER */}
         <div style={{ backgroundColor: GREEN, padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           <h2 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 'bold' }}>New Client Profile</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', fontSize: '20px', cursor: 'pointer' }}>✕</button>
         </div>
 
-        {/* TABS */}
         <div style={{ display: 'flex', borderBottom: '2px solid #E0E0E0', backgroundColor: '#F8F9FA', flexShrink: 0, overflowX: 'auto' }}>
           {['demographics', 'health', 'life', 'financial', 'notes'].map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} style={{ padding: '12px 14px', cursor: 'pointer', fontSize: '12px', fontWeight: activeTab === tab ? '700' : '400', color: activeTab === tab ? GREEN : '#666', borderBottom: activeTab === tab ? '2px solid ' + GREEN : 'none', backgroundColor: 'transparent', border: 'none', marginBottom: '-2px', whiteSpace: 'nowrap' }}>
@@ -124,7 +125,6 @@ current_financial_products_list: []
           ))}
         </div>
 
-        {/* SCROLLABLE BODY */}
         <div style={{ overflowY: 'auto', flex: 1, padding: '24px' }}>
           <form onSubmit={handleSubmit}>
 
@@ -279,70 +279,40 @@ current_financial_products_list: []
             )}
 
             {activeTab === 'financial' && (
-  <div>
-    <p style={sectionTitle}>Current Financial Products</p>
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
-      {['Annuity','Indexed Universal Life (IUL)','Whole Life','Term Life','Mutual Funds','401(k) / IRA','CD / Savings','Other'].map(product => (
-        <label key={product} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
-          <input
-            type="checkbox"
-            name="current_financial_products"
-            value={product}
-            checked={form.current_financial_products_list ? form.current_financial_products_list.includes(product) : false}
-            onChange={e => {
-              const updated = form.current_financial_products_list || [];
-              const newList = e.target.checked
-                ? [...updated, product]
-                : updated.filter(p => p !== product);
-              setForm({ ...form, current_financial_products_list: newList, current_financial_products: newList.join(', ') });
-            }}
-          />
-          {product}
-        </label>
-      ))}
-    </div>
+              <div>
+                <p style={sectionTitle}>Current Financial Products</p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+                  {financialProducts.map(product => (
+                    <label key={product} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
+                      <input
+                        type="checkbox"
+                        value={product}
+                        checked={form.current_financial_products_list.includes(product)}
+                        onChange={e => {
+                          const updated = e.target.checked
+                            ? [...form.current_financial_products_list, product]
+                            : form.current_financial_products_list.filter(p => p !== product);
+                          setForm({ ...form, current_financial_products_list: updated, current_financial_products: updated.join(', ') });
+                        }}
+                      />
+                      {product}
+                    </label>
+                  ))}
+                </div>
 
-    <p style={sectionTitle}>Carrier & Details</p>
-    <div style={row}>
-      <div style={col}>
-        <label style={label}>Current Carrier</label>
-        <select style={select} name="financial_carrier" value={form.financial_carrier || ''} onChange={handleChange}>
-          <option value="">Select...</option>
-          {['American Equity Inv.','American General','Equitrust','F&G','Mass Mutual','Nationwide','Silac','Other'].map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-      </div>
-      <div style={col}>
-        <label style={label}>Risk Tolerance</label>
-        <select style={select} name="risk_tolerance" value={form.risk_tolerance} onChange={handleChange}>
-          <option value="">Select...</option>
-          <option value="conservative">Conservative</option>
-          <option value="moderate">Moderate</option>
-          <option value="aggressive">Aggressive</option>
-        </select>
-      </div>
-    </div>
-    {form.financial_carrier === 'Other' && (
-      <div style={{ marginBottom: '12px' }}>
-        <label style={label}>Specify Carrier</label>
-        <input style={input} name="financial_carrier_other" value={form.financial_carrier_other || ''} onChange={handleChange} />
-      </div>
-    )}
-    <div style={row}>
-      <div style={col}>
-        <label style={label}>Retirement Goal Age</label>
-        <input style={input} type="number" name="retirement_goal_age" value={form.retirement_goal_age} onChange={handleChange} placeholder="e.g. 65" />
-      </div>
-      <div style={col}>
-        <label style={label}>Interested Financial Products</label>
-        <input style={input} name="interested_financial_products" value={form.interested_financial_products} onChange={handleChange} placeholder="e.g. Annuity, Roth IRA..." />
-      </div>
-    </div>
-    <div style={{ marginBottom: '12px' }}>
-      <label style={label}>Plan Start Date</label>
-      <input style={{ ...input, width: '200px' }} type="date" name="financial_plan_start_date" value={form.financial_plan_start_date || ''} onChange={handleChange} />
-    </div>
-  </div>
-)}
+                <p style={sectionTitle}>Carrier & Details</p>
+                <div style={row}>
+                  <div style={col}><label style={label}>Current Carrier</label><select style={select} name="financial_carrier" value={form.financial_carrier} onChange={handleChange}><option value="">Select...</option>{financialCarriers.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                  <div style={col}><label style={label}>Risk Tolerance</label><select style={select} name="risk_tolerance" value={form.risk_tolerance} onChange={handleChange}><option value="">Select...</option><option value="conservative">Conservative</option><option value="moderate">Moderate</option><option value="aggressive">Aggressive</option></select></div>
+                </div>
+                {form.financial_carrier === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Carrier</label><input style={input} name="financial_carrier_other" value={form.financial_carrier_other} onChange={handleChange} /></div>)}
+                <div style={row}>
+                  <div style={col}><label style={label}>Retirement Goal Age</label><input style={input} type="number" name="retirement_goal_age" value={form.retirement_goal_age} onChange={handleChange} placeholder="e.g. 65" /></div>
+                  <div style={col}><label style={label}>Interested Financial Products</label><input style={input} name="interested_financial_products" value={form.interested_financial_products} onChange={handleChange} placeholder="e.g. Annuity, Roth IRA..." /></div>
+                </div>
+                <div style={{ marginBottom: '12px' }}><label style={label}>Plan Start Date</label><input style={{ ...input, width: '200px' }} type="date" name="financial_plan_start_date" value={form.financial_plan_start_date} onChange={handleChange} /></div>
+              </div>
+            )}
 
             {activeTab === 'notes' && (
               <div>
@@ -352,7 +322,6 @@ current_financial_products_list: []
               </div>
             )}
 
-            {/* FOOTER inside form so submit works */}
             <div style={{ paddingTop: '16px', borderTop: '1px solid #eee', marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: '#c0392b', fontSize: '13px' }}>{error}</span>
               <div style={{ display: 'flex', gap: '10px' }}>
