@@ -19,6 +19,8 @@ function ClientForm({ onSave, onClose }) {
     spouse_health_carrier: '', spouse_health_plan_type: '', spouse_health_plan_type_other: '', spouse_plan_start_date: '',
     life_carrier: '', life_carrier_other: '', life_plan_type: '', coverage_type: '', interested_coverage: '', life_plan_start_date: '',
     current_financial_products: '', interested_financial_products: '', retirement_goal_age: '', risk_tolerance: '',
+financial_carrier: '', financial_carrier_other: '', financial_plan_start_date: '',
+current_financial_products_list: []
     notes: '', last_contacted: ''
   });
 
@@ -277,16 +279,70 @@ function ClientForm({ onSave, onClose }) {
             )}
 
             {activeTab === 'financial' && (
-              <div>
-                <p style={sectionTitle}>Financial Profile</p>
-                <div style={{ marginBottom: '12px' }}><label style={label}>Current Financial Products</label><input style={input} name="current_financial_products" value={form.current_financial_products} onChange={handleChange} placeholder="e.g. IRA, 401k, Annuity..." /></div>
-                <div style={{ marginBottom: '12px' }}><label style={label}>Interested Financial Products</label><input style={input} name="interested_financial_products" value={form.interested_financial_products} onChange={handleChange} placeholder="e.g. Annuity, Roth IRA..." /></div>
-                <div style={row}>
-                  <div style={col}><label style={label}>Retirement Goal Age</label><input style={input} type="number" name="retirement_goal_age" value={form.retirement_goal_age} onChange={handleChange} placeholder="e.g. 65" /></div>
-                  <div style={col}><label style={label}>Risk Tolerance</label><select style={select} name="risk_tolerance" value={form.risk_tolerance} onChange={handleChange}><option value="">Select...</option><option value="conservative">Conservative</option><option value="moderate">Moderate</option><option value="aggressive">Aggressive</option></select></div>
-                </div>
-              </div>
-            )}
+  <div>
+    <p style={sectionTitle}>Current Financial Products</p>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+      {['Annuity','Indexed Universal Life (IUL)','Whole Life','Term Life','Mutual Funds','401(k) / IRA','CD / Savings','Other'].map(product => (
+        <label key={product} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            name="current_financial_products"
+            value={product}
+            checked={form.current_financial_products_list ? form.current_financial_products_list.includes(product) : false}
+            onChange={e => {
+              const updated = form.current_financial_products_list || [];
+              const newList = e.target.checked
+                ? [...updated, product]
+                : updated.filter(p => p !== product);
+              setForm({ ...form, current_financial_products_list: newList, current_financial_products: newList.join(', ') });
+            }}
+          />
+          {product}
+        </label>
+      ))}
+    </div>
+
+    <p style={sectionTitle}>Carrier & Details</p>
+    <div style={row}>
+      <div style={col}>
+        <label style={label}>Current Carrier</label>
+        <select style={select} name="financial_carrier" value={form.financial_carrier || ''} onChange={handleChange}>
+          <option value="">Select...</option>
+          {['American Equity Inv.','American General','Equitrust','F&G','Mass Mutual','Nationwide','Silac','Other'].map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+      </div>
+      <div style={col}>
+        <label style={label}>Risk Tolerance</label>
+        <select style={select} name="risk_tolerance" value={form.risk_tolerance} onChange={handleChange}>
+          <option value="">Select...</option>
+          <option value="conservative">Conservative</option>
+          <option value="moderate">Moderate</option>
+          <option value="aggressive">Aggressive</option>
+        </select>
+      </div>
+    </div>
+    {form.financial_carrier === 'Other' && (
+      <div style={{ marginBottom: '12px' }}>
+        <label style={label}>Specify Carrier</label>
+        <input style={input} name="financial_carrier_other" value={form.financial_carrier_other || ''} onChange={handleChange} />
+      </div>
+    )}
+    <div style={row}>
+      <div style={col}>
+        <label style={label}>Retirement Goal Age</label>
+        <input style={input} type="number" name="retirement_goal_age" value={form.retirement_goal_age} onChange={handleChange} placeholder="e.g. 65" />
+      </div>
+      <div style={col}>
+        <label style={label}>Interested Financial Products</label>
+        <input style={input} name="interested_financial_products" value={form.interested_financial_products} onChange={handleChange} placeholder="e.g. Annuity, Roth IRA..." />
+      </div>
+    </div>
+    <div style={{ marginBottom: '12px' }}>
+      <label style={label}>Plan Start Date</label>
+      <input style={{ ...input, width: '200px' }} type="date" name="financial_plan_start_date" value={form.financial_plan_start_date || ''} onChange={handleChange} />
+    </div>
+  </div>
+)}
 
             {activeTab === 'notes' && (
               <div>
