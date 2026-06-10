@@ -21,6 +21,8 @@ app.use('/api/users', usersRouter);
 app.get('/', (req, res) => {
   res.json({ message: 'PolicyDesk API is running!' });
 });
+const notesRouter = require('./routes/notes');
+app.use('/api/notes', notesRouter);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
