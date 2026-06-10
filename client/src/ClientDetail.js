@@ -89,7 +89,7 @@ function ClientDetail({ contact, onClose, onSave }) {
     }
     setSaving(false);
   }
-
+// eslint-disable-next-line no-unused-vars
   const specialties = ['Cardiology','Dermatology','Endocrinology','Family Medicine','Gastroenterology','General Surgery','Geriatrics','Hematology','Internal Medicine','Nephrology','Neurology','Obstetrics & Gynecology','Oncology','Ophthalmology','Orthopedics','Otolaryngology (ENT)','Pediatrics','Psychiatry','Pulmonology','Radiology','Rheumatology','Urology','Other'];
   const healthCarriers = ['Aetna','Anthem','Cigna','Devoted','Essence','Humana','United Health'];
   const healthPlanTypes = ['HMO','PPO','EPO','Medicare Advantage','Medicare Supplement Insurance','Other'];
