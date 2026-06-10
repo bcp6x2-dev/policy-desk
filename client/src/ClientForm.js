@@ -26,6 +26,11 @@ function ClientForm({ onSave, onClose }) {
 
   const [activeTab, setActiveTab] = useState('demographics');
   const [error, setError] = useState('');
+  const [savedContactId, setSavedContactId] = useState(null);
+  const [notesList, setNotesList] = useState([]);
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [noteBody, setNoteBody] = useState('');
+  const [noteSaving, setNoteSaving] = useState(false);
 
   const GREEN = '#2B5C2B';
   const GOLD = '#C9A227';
@@ -56,6 +61,37 @@ function ClientForm({ onSave, onClose }) {
     setForm({ ...form, physicians: updated });
   }
 
+  function formatNoteDate(dateStr) {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) +
+      ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  }
+
+  async function handleSaveNote() {
+    if (!noteBody.trim()) return;
+    setNoteSaving(true);
+    try {
+      const token = localStorage.getItem('token');
+      const userRaw = localStorage.getItem('user');
+      const user = userRaw ? JSON.parse(userRaw) : null;
+      const broker_name = user ? user.name : 'Unknown';
+      const res = await fetch(`https://policy-desk-production.up.railway.app/api/notes/${savedContactId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ body: noteBody, broker_name }),
+      });
+      if (res.ok) {
+        const newNote = await res.json();
+        setNotesList([newNote, ...notesList]);
+        setNoteBody('');
+        setShowNoteModal(false);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setNoteSaving(false);
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
@@ -71,10 +107,7 @@ function ClientForm({ onSave, onClose }) {
       };
       const res = await fetch('https://policy-desk-production.up.railway.app/api/contacts', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(payload),
       });
       if (!res.ok) {
@@ -83,6 +116,7 @@ function ClientForm({ onSave, onClose }) {
         return;
       }
       const data = await res.json();
+      setSavedContactId(data.id);
       onSave(data);
       onClose();
     } catch (err) {
@@ -284,18 +318,14 @@ function ClientForm({ onSave, onClose }) {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
                   {financialProducts.map(product => (
                     <label key={product} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        value={product}
-                        checked={form.current_financial_products_list.includes(product)}
+                      <input type="checkbox" value={product} checked={form.current_financial_products_list.includes(product)}
                         onChange={e => {
                           const updated = e.target.checked
                             ? [...form.current_financial_products_list, product]
                             : form.current_financial_products_list.filter(p => p !== product);
                           setForm({ ...form, current_financial_products_list: updated, current_financial_products: updated.join(', ') });
                         }}
-                      />
-                      {product}
+                      />{product}
                     </label>
                   ))}
                 </div>
@@ -316,9 +346,28 @@ function ClientForm({ onSave, onClose }) {
 
             {activeTab === 'notes' && (
               <div>
-                <p style={sectionTitle}>Notes & Activity</p>
-                <label style={label}>Notes</label>
-                <textarea style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box', minHeight: '80px', resize: 'vertical' }} name="notes" value={form.notes} onChange={handleChange} placeholder="Add any notes about this client..." />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <p style={{ ...sectionTitle, margin: 0 }}>Notes</p>
+                  {savedContactId ? (
+                    <button type="button" onClick={() => setShowNoteModal(true)} style={{ backgroundColor: GOLD, color: 'white', border: 'none', padding: '7px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>+ Add Note</button>
+                  ) : (
+                    <span style={{ fontSize: '12px', color: '#888', fontStyle: 'italic' }}>Save the client first to add notes</span>
+                  )}
+                </div>
+
+                {notesList.length === 0 ? (
+                  <div style={mutedBox}>No notes yet. Save the client then add your first note.</div>
+                ) : (
+                  notesList.map(note => (
+                    <div key={note.id} style={{ border: '1px solid #E0E0E0', borderRadius: '8px', padding: '14px', marginBottom: '10px', backgroundColor: '#FAFAFA' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '12px', fontWeight: '600', color: GREEN }}>{note.broker_name}</span>
+                        <span style={{ fontSize: '12px', color: '#888' }}>{formatNoteDate(note.created_at)}</span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '14px', color: '#333' }}>{note.body}</p>
+                    </div>
+                  ))
+                )}
               </div>
             )}
 
@@ -333,6 +382,29 @@ function ClientForm({ onSave, onClose }) {
           </form>
         </div>
       </div>
+
+      {/* NOTE MODAL */}
+      {showNoteModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
+          <div style={{ backgroundColor: 'white', borderRadius: '12px', width: '480px', padding: '24px', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' }}>
+            <h3 style={{ margin: '0 0 16px', color: GREEN }}>Add Note</h3>
+            <div style={{ marginBottom: '12px', fontSize: '13px', color: '#888' }}>
+              {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} · {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+            </div>
+            <textarea
+              value={noteBody}
+              onChange={e => setNoteBody(e.target.value)}
+              placeholder="Write your note here..."
+              style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', minHeight: '120px', resize: 'vertical', boxSizing: 'border-box' }}
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
+              <button type="button" onClick={() => { setShowNoteModal(false); setNoteBody(''); }} style={{ padding: '9px 18px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', fontSize: '14px', backgroundColor: 'white' }}>Cancel</button>
+              <button type="button" onClick={handleSaveNote} disabled={noteSaving} style={{ padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: GOLD, color: 'white', fontWeight: '600' }}>{noteSaving ? 'Saving...' : 'Save Note'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
