@@ -66,7 +66,7 @@ const matchesSearch =
 c.name?.toLowerCase().includes(search.toLowerCase()) ||
 c.email?.toLowerCase().includes(search.toLowerCase()) ||
 c.phone?.includes(search);
-const matchesType = filterType === 'all' || c.client_type === filterType;
+const matchesType = filterType === 'all' || (c.client_types && c.client_types.includes(filterType));
 const matchesStatus = filterStatus === 'all' || c.status === filterStatus;
 return matchesSearch && matchesType && matchesStatus;
 });
@@ -140,9 +140,9 @@ Sign Out
 <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
 {[
 { key: 'all', label: '👥 All Clients', color: BLACK },
-{ key: 'insurance', label: '🏥 Insurance', color: RED },
-{ key: 'financial', label: '💰 Financial', color: '#6f42c1' },
-{ key: 'both', label: '⭐ Both', color: '#0d6efd' },
+{ key: 'Health Insurance', label: '🏥 Health Insurance', color: RED },
+{ key: 'Life Insurance', label: '🛡️ Life Insurance', color: BLACK },
+{ key: 'Finance', label: '💰 Finance', color: '#6f42c1' },
 ].map(({ key, label, color }) => (
 <button key={key} onClick={() => setFilterType(key)} style={styles.filterBtn(filterType === key, color)}>{label}</button>
 ))}
@@ -185,7 +185,7 @@ onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}>
 <td style={{ ...styles.td, fontWeight: '600' }}>{contact.name}</td>
 <td style={styles.td}>{contact.email}</td>
 <td style={styles.td}>{contact.phone}</td>
-<td style={styles.td}>{contact.client_type || 'insurance'}</td>
+<td style={styles.td}>{contact.client_types || contact.client_type || '—'}</td>
 <td style={styles.td}><span style={styles.badge(contact.status)}>{contact.status}</span></td>
 </tr>
 ))

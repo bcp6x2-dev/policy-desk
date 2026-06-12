@@ -5,19 +5,19 @@ const RED = '#851D21';
 const BLACK = '#303030';
 const CREAM = '#E6D6C6';
 
-// Calculate stats
 const total = contacts.length;
-const insurance = contacts.filter(c => c.client_type === 'insurance').length;
-const financial = contacts.filter(c => c.client_type === 'financial').length;
-const both = contacts.filter(c => c.client_type === 'both').length;
+const health = contacts.filter(c => c.client_types && c.client_types.includes('Health Insurance')).length;
+const life = contacts.filter(c => c.client_types && c.client_types.includes('Life Insurance')).length;
+const finance = contacts.filter(c => c.client_types && c.client_types.includes('Finance')).length;
+const untagged = contacts.filter(c => !c.client_types || c.client_types.trim() === '').length;
 
 const leads = contacts.filter(c => c.status === 'lead').length;
 const prospects = contacts.filter(c => c.status === 'prospect').length;
 const active = contacts.filter(c => c.status === 'active').length;
 const inactive = contacts.filter(c => c.status === 'inactive').length;
 
-const crossSellOpportunities = contacts.filter(c => c.client_type === 'insurance').length;
-const financialOpportunities = contacts.filter(c => c.client_type === 'financial').length;
+const crossSellOpportunities = contacts.filter(c => c.client_types && c.client_types.includes('Health Insurance') && !c.client_types.includes('Finance')).length;
+const financialOpportunities = contacts.filter(c => c.client_types && c.client_types.includes('Finance') && !c.client_types.includes('Health Insurance')).length;
 
 const s = {
 overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
@@ -29,11 +29,8 @@ sectionTitle: { fontSize: '14px', fontWeight: '700', color: '#555', textTransfor
 grid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '8px' },
 grid2: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '16px', marginBottom: '8px' },
 card: (color) => ({
-backgroundColor: 'white',
-borderRadius: '10px',
-padding: '20px',
-boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-borderTop: `4px solid ${color}`,
+backgroundColor: 'white', borderRadius: '10px', padding: '20px',
+boxShadow: '0 1px 4px rgba(0,0,0,0.08)', borderTop: `4px solid ${color}`,
 }),
 cardNumber: { fontSize: '36px', fontWeight: 'bold', margin: '4px 0' },
 cardLabel: { fontSize: '13px', color: '#888' },
@@ -43,11 +40,8 @@ footer: { padding: '16px 24px', borderTop: '1px solid #eee', display: 'flex', ju
 opportunityCard: { backgroundColor: 'white', borderRadius: '10px', padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
 opportunityNumber: { fontSize: '28px', fontWeight: 'bold', color: RED },
 bar: (value, total, color) => ({
-height: '8px',
-borderRadius: '4px',
-backgroundColor: color,
-width: total > 0 ? `${(value / total) * 100}%` : '0%',
-marginTop: '6px',
+height: '8px', borderRadius: '4px', backgroundColor: color,
+width: total > 0 ? `${(value / total) * 100}%` : '0%', marginTop: '6px',
 }),
 barBg: { height: '8px', borderRadius: '4px', backgroundColor: '#eee', marginTop: '6px' },
 };
@@ -77,29 +71,29 @@ return (
 
 <p style={s.sectionTitle}>By Client Type</p>
 <div style={s.grid}>
-<div style={s.card('#0d6efd')}>
-<div style={s.cardLabel}>Insurance Only</div>
-<div style={{ ...s.cardNumber, color: '#0d6efd' }}>{insurance.toLocaleString()}</div>
-<div style={s.cardPercent('#0d6efd')}>{pct(insurance)} of total</div>
-<div style={s.barBg}><div style={s.bar(insurance, total, '#0d6efd')} /></div>
-</div>
-<div style={s.card('#198754')}>
-<div style={s.cardLabel}>Financial Only</div>
-<div style={{ ...s.cardNumber, color: '#198754' }}>{financial.toLocaleString()}</div>
-<div style={s.cardPercent('#198754')}>{pct(financial)} of total</div>
-<div style={s.barBg}><div style={s.bar(financial, total, '#198754')} /></div>
+<div style={s.card(RED)}>
+<div style={s.cardLabel}>Health Insurance</div>
+<div style={{ ...s.cardNumber, color: RED }}>{health.toLocaleString()}</div>
+<div style={s.cardPercent(RED)}>{pct(health)} of total</div>
+<div style={s.barBg}><div style={s.bar(health, total, RED)} /></div>
 </div>
 <div style={s.card('#6f42c1')}>
-<div style={s.cardLabel}>Both Verticals</div>
-<div style={{ ...s.cardNumber, color: '#6f42c1' }}>{both.toLocaleString()}</div>
-<div style={s.cardPercent('#6f42c1')}>{pct(both)} of total</div>
-<div style={s.barBg}><div style={s.bar(both, total, '#6f42c1')} /></div>
+<div style={s.cardLabel}>Life Insurance</div>
+<div style={{ ...s.cardNumber, color: '#6f42c1' }}>{life.toLocaleString()}</div>
+<div style={s.cardPercent('#6f42c1')}>{pct(life)} of total</div>
+<div style={s.barBg}><div style={s.bar(life, total, '#6f42c1')} /></div>
 </div>
-<div style={s.card(CREAM)}>
+<div style={s.card('#198754')}>
+<div style={s.cardLabel}>Finance</div>
+<div style={{ ...s.cardNumber, color: '#198754' }}>{finance.toLocaleString()}</div>
+<div style={s.cardPercent('#198754')}>{pct(finance)} of total</div>
+<div style={s.barBg}><div style={s.bar(finance, total, '#198754')} /></div>
+</div>
+<div style={s.card(BLACK)}>
 <div style={s.cardLabel}>Untagged</div>
-<div style={{ ...s.cardNumber, color: BLACK }}>{(total - insurance - financial - both).toLocaleString()}</div>
-<div style={s.cardPercent(BLACK)}>{pct(total - insurance - financial - both)} of total</div>
-<div style={s.barBg}><div style={s.bar(total - insurance - financial - both, total, BLACK)} /></div>
+<div style={{ ...s.cardNumber, color: BLACK }}>{untagged.toLocaleString()}</div>
+<div style={s.cardPercent(BLACK)}>{pct(untagged)} of total</div>
+<div style={s.barBg}><div style={s.bar(untagged, total, BLACK)} /></div>
 </div>
 </div>
 
@@ -135,7 +129,7 @@ return (
 <div style={s.grid2}>
 <div style={s.opportunityCard}>
 <div>
-<div style={s.cardLabel}>Insurance clients without Financial products</div>
+<div style={s.cardLabel}>Health Insurance clients without Finance products</div>
 <div style={s.opportunityNumber}>{crossSellOpportunities.toLocaleString()}</div>
 <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>Potential financial product upsell</div>
 </div>
@@ -143,7 +137,7 @@ return (
 </div>
 <div style={s.opportunityCard}>
 <div>
-<div style={s.cardLabel}>Financial clients without Insurance products</div>
+<div style={s.cardLabel}>Finance clients without Health Insurance</div>
 <div style={s.opportunityNumber}>{financialOpportunities.toLocaleString()}</div>
 <div style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>Potential insurance upsell</div>
 </div>
@@ -158,9 +152,7 @@ return (
 style={{ backgroundColor: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', padding: '9px 24px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', marginRight: 'auto' }}
 onClick={async () => {
 if (window.confirm(`Are you sure you want to DELETE ALL ${total} contacts? This cannot be undone.`)) {
-await fetch('https://policy-desk-production.up.railway.app/api/contacts', {
-method: 'DELETE'
-});
+await fetch('https://policy-desk-production.up.railway.app/api/contacts', { method: 'DELETE' });
 onClose();
 window.location.reload();
 }
