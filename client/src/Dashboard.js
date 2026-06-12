@@ -3,7 +3,7 @@ import React from 'react';
 function Dashboard({ contacts, onClose }) {
 const RED = '#851D21';
 const BLACK = '#303030';
-const CREAM = '#E6D6C6';
+
 
 const total = contacts.length;
 const health = contacts.filter(c => c.client_types && c.client_types.includes('Health Insurance')).length;
