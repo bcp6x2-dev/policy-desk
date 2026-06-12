@@ -32,8 +32,9 @@ function ClientForm({ onSave, onClose }) {
   const [noteBody, setNoteBody] = useState('');
   const [noteSaving, setNoteSaving] = useState(false);
 
-  const GREEN = '#2B5C2B';
-  const GOLD = '#C9A227';
+  const RED = '#851D21';
+  const BLACK = '#303030';
+  const CREAM = '#E6D6C6';
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -138,22 +139,22 @@ function ClientForm({ onSave, onClose }) {
   const label = { display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#555', textTransform: 'uppercase' };
   const row = { display: 'flex', gap: '12px', marginBottom: '12px' };
   const col = { flex: 1 };
-  const sectionTitle = { fontSize: '13px', fontWeight: '700', color: GREEN, textTransform: 'uppercase', marginBottom: '12px', paddingBottom: '6px', borderBottom: '1px solid #E8F0FA' };
-  const conditionalBox = { backgroundColor: '#F8FAF8', border: '1px solid #D0E4D0', borderRadius: '8px', padding: '16px', marginBottom: '12px' };
+  const sectionTitle = { fontSize: '13px', fontWeight: '700', color: RED, textTransform: 'uppercase', marginBottom: '12px', paddingBottom: '6px', borderBottom: '1px solid #E8F0FA' };
+  const conditionalBox = { backgroundColor: '#FDF5F5', border: '1px solid #E8C8C8', borderRadius: '8px', padding: '16px', marginBottom: '12px' };
   const mutedBox = { backgroundColor: '#F5F5F5', border: '1px solid #E0E0E0', borderRadius: '8px', padding: '12px', marginBottom: '12px', color: '#888', fontSize: '13px', fontStyle: 'italic' };
 
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
       <div style={{ backgroundColor: 'white', borderRadius: '12px', width: '90vw', maxWidth: '720px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 30px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
 
-        <div style={{ backgroundColor: GREEN, padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ backgroundColor: RED, padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
           <h2 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 'bold' }}>New Client Profile</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', fontSize: '20px', cursor: 'pointer' }}>✕</button>
         </div>
 
         <div style={{ display: 'flex', borderBottom: '2px solid #E0E0E0', backgroundColor: '#F8F9FA', flexShrink: 0, overflowX: 'auto' }}>
           {['demographics', 'health', 'life', 'financial', 'notes'].map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)} style={{ padding: '12px 14px', cursor: 'pointer', fontSize: '12px', fontWeight: activeTab === tab ? '700' : '400', color: activeTab === tab ? GREEN : '#666', borderBottom: activeTab === tab ? '2px solid ' + GREEN : 'none', backgroundColor: 'transparent', border: 'none', marginBottom: '-2px', whiteSpace: 'nowrap' }}>
+            <button key={tab} onClick={() => setActiveTab(tab)} style={{ padding: '12px 14px', cursor: 'pointer', fontSize: '12px', fontWeight: activeTab === tab ? '700' : '400', color: activeTab === tab ? RED : '#666', borderBottom: activeTab === tab ? '2px solid ' + RED : 'none', backgroundColor: 'transparent', border: 'none', marginBottom: '-2px', whiteSpace: 'nowrap' }}>
               {tab === 'demographics' ? '👤 Demographics' : tab === 'health' ? '🏥 Health Insurance' : tab === 'life' ? '🛡️ Life Insurance' : tab === 'financial' ? '💰 Financial' : '📝 Notes'}
             </button>
           ))}
@@ -270,7 +271,7 @@ function ClientForm({ onSave, onClose }) {
                     </div>
                   </div>
                 ))}
-                <button type="button" onClick={addPhysician} style={{ backgroundColor: 'transparent', border: '1px solid ' + GREEN, color: GREEN, padding: '7px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', marginBottom: '12px' }}>+ Add Physician</button>
+                <button type="button" onClick={addPhysician} style={{ backgroundColor: 'transparent', border: '1px solid ' + RED, color: RED, padding: '7px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600', marginBottom: '12px' }}>+ Add Physician</button>
 
                 <p style={sectionTitle}>Preferred Pharmacy</p>
                 <div style={{ marginBottom: '12px' }}><label style={label}>Pharmacy Name</label><select style={select} name="pharmacy_name" value={form.pharmacy_name} onChange={handleChange}><option value="">Select...</option>{pharmacies.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
@@ -349,7 +350,7 @@ function ClientForm({ onSave, onClose }) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <p style={{ ...sectionTitle, margin: 0 }}>Notes</p>
                   {savedContactId ? (
-                    <button type="button" onClick={() => setShowNoteModal(true)} style={{ backgroundColor: GOLD, color: 'white', border: 'none', padding: '7px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>+ Add Note</button>
+                    <button type="button" onClick={() => setShowNoteModal(true)} style={{ backgroundColor: BLACK, color: 'white', border: 'none', padding: '7px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>+ Add Note</button>
                   ) : (
                     <span style={{ fontSize: '12px', color: '#888', fontStyle: 'italic' }}>Save the client first to add notes</span>
                   )}
@@ -361,7 +362,7 @@ function ClientForm({ onSave, onClose }) {
                   notesList.map(note => (
                     <div key={note.id} style={{ border: '1px solid #E0E0E0', borderRadius: '8px', padding: '14px', marginBottom: '10px', backgroundColor: '#FAFAFA' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                        <span style={{ fontSize: '12px', fontWeight: '600', color: GREEN }}>{note.broker_name}</span>
+                        <span style={{ fontSize: '12px', fontWeight: '600', color: RED }}>{note.broker_name}</span>
                         <span style={{ fontSize: '12px', color: '#888' }}>{formatNoteDate(note.created_at)}</span>
                       </div>
                       <p style={{ margin: 0, fontSize: '14px', color: '#333' }}>{note.body}</p>
@@ -375,7 +376,7 @@ function ClientForm({ onSave, onClose }) {
               <span style={{ color: '#c0392b', fontSize: '13px' }}>{error}</span>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button type="button" onClick={onClose} style={{ padding: '9px 18px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', fontSize: '14px', backgroundColor: 'white' }}>Cancel</button>
-                <button type="submit" style={{ padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: GOLD, color: 'white', fontWeight: '600' }}>Save Client</button>
+                <button type="submit" style={{ padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: BLACK, color: 'white', fontWeight: '600' }}>Save Client</button>
               </div>
             </div>
 
@@ -387,7 +388,7 @@ function ClientForm({ onSave, onClose }) {
       {showNoteModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
           <div style={{ backgroundColor: 'white', borderRadius: '12px', width: '480px', padding: '24px', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' }}>
-            <h3 style={{ margin: '0 0 16px', color: GREEN }}>Add Note</h3>
+            <h3 style={{ margin: '0 0 16px', color: RED }}>Add Note</h3>
             <div style={{ marginBottom: '12px', fontSize: '13px', color: '#888' }}>
               {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} · {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
             </div>
@@ -399,7 +400,7 @@ function ClientForm({ onSave, onClose }) {
             />
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
               <button type="button" onClick={() => { setShowNoteModal(false); setNoteBody(''); }} style={{ padding: '9px 18px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', fontSize: '14px', backgroundColor: 'white' }}>Cancel</button>
-              <button type="button" onClick={handleSaveNote} disabled={noteSaving} style={{ padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: GOLD, color: 'white', fontWeight: '600' }}>{noteSaving ? 'Saving...' : 'Save Note'}</button>
+              <button type="button" onClick={handleSaveNote} disabled={noteSaving} style={{ padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: BLACK, color: 'white', fontWeight: '600' }}>{noteSaving ? 'Saving...' : 'Save Note'}</button>
             </div>
           </div>
         </div>
