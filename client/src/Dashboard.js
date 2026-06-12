@@ -1,8 +1,9 @@
 import React from 'react';
 
 function Dashboard({ contacts, onClose }) {
-const GREEN = '#2B5C2B';
-const GOLD = '#C9A227';
+const RED = '#851D21';
+const BLACK = '#303030';
+const CREAM = '#E6D6C6';
 
 // Calculate stats
 const total = contacts.length;
@@ -21,7 +22,7 @@ const financialOpportunities = contacts.filter(c => c.client_type === 'financial
 const s = {
 overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
 modal: { backgroundColor: '#F4F6F9', borderRadius: '12px', width: '800px', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' },
-header: { backgroundColor: GREEN, padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+header: { backgroundColor: BLACK, padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '4px solid ' + RED },
 headerTitle: { color: 'white', margin: 0, fontSize: '20px', fontWeight: 'bold' },
 body: { padding: '24px', overflowY: 'auto' },
 sectionTitle: { fontSize: '14px', fontWeight: '700', color: '#555', textTransform: 'uppercase', marginBottom: '12px', marginTop: '24px' },
@@ -37,10 +38,10 @@ borderTop: `4px solid ${color}`,
 cardNumber: { fontSize: '36px', fontWeight: 'bold', margin: '4px 0' },
 cardLabel: { fontSize: '13px', color: '#888' },
 cardPercent: (color) => ({ fontSize: '12px', color, fontWeight: '600', marginTop: '4px' }),
-closeBtn: { padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: GOLD, color: 'white', fontWeight: '600' },
+closeBtn: { padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: RED, color: 'white', fontWeight: '600' },
 footer: { padding: '16px 24px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', backgroundColor: 'white' },
 opportunityCard: { backgroundColor: 'white', borderRadius: '10px', padding: '20px', boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-opportunityNumber: { fontSize: '28px', fontWeight: 'bold', color: GREEN },
+opportunityNumber: { fontSize: '28px', fontWeight: 'bold', color: RED },
 bar: (value, total, color) => ({
 height: '8px',
 borderRadius: '4px',
@@ -65,17 +66,15 @@ return (
 
 <div style={s.body}>
 
-{/* Total */}
 <p style={s.sectionTitle}>Overview</p>
-<div style={{ ...s.card(GREEN), marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+<div style={{ ...s.card(RED), marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 <div>
 <div style={s.cardLabel}>Total Contacts</div>
-<div style={{ ...s.cardNumber, color: GREEN }}>{total.toLocaleString()}</div>
+<div style={{ ...s.cardNumber, color: RED }}>{total.toLocaleString()}</div>
 </div>
 <div style={{ fontSize: '48px' }}>👥</div>
 </div>
 
-{/* By Type */}
 <p style={s.sectionTitle}>By Client Type</p>
 <div style={s.grid}>
 <div style={s.card('#0d6efd')}>
@@ -96,15 +95,14 @@ return (
 <div style={s.cardPercent('#6f42c1')}>{pct(both)} of total</div>
 <div style={s.barBg}><div style={s.bar(both, total, '#6f42c1')} /></div>
 </div>
-<div style={s.card(GOLD)}>
+<div style={s.card(CREAM)}>
 <div style={s.cardLabel}>Untagged</div>
-<div style={{ ...s.cardNumber, color: GOLD }}>{(total - insurance - financial - both).toLocaleString()}</div>
-<div style={s.cardPercent(GOLD)}>{pct(total - insurance - financial - both)} of total</div>
-<div style={s.barBg}><div style={s.bar(total - insurance - financial - both, total, GOLD)} /></div>
+<div style={{ ...s.cardNumber, color: BLACK }}>{(total - insurance - financial - both).toLocaleString()}</div>
+<div style={s.cardPercent(BLACK)}>{pct(total - insurance - financial - both)} of total</div>
+<div style={s.barBg}><div style={s.bar(total - insurance - financial - both, total, BLACK)} /></div>
 </div>
 </div>
 
-{/* By Status */}
 <p style={s.sectionTitle}>By Status</p>
 <div style={s.grid}>
 <div style={s.card('#856404')}>
@@ -133,7 +131,6 @@ return (
 </div>
 </div>
 
-{/* Cross-sell */}
 <p style={s.sectionTitle}>Cross-Sell Opportunities</p>
 <div style={s.grid2}>
 <div style={s.opportunityCard}>
@@ -158,7 +155,7 @@ return (
 
 <div style={s.footer}>
 <button
-style={{ ...s.closeBtn, backgroundColor: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', marginRight: 'auto' }}
+style={{ backgroundColor: '#F8D7DA', color: '#721C24', border: '1px solid #F5C6CB', padding: '9px 24px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', marginRight: 'auto' }}
 onClick={async () => {
 if (window.confirm(`Are you sure you want to DELETE ALL ${total} contacts? This cannot be undone.`)) {
 await fetch('https://policy-desk-production.up.railway.app/api/contacts', {
