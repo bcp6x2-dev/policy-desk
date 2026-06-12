@@ -74,23 +74,24 @@ return matchesSearch && matchesType && matchesStatus;
 const totalPages = Math.ceil(filtered.length / contactsPerPage);
 const paginated = filtered.slice((currentPage - 1) * contactsPerPage, currentPage * contactsPerPage);
 
-const GREEN = '#2B5C2B';
-const GOLD = '#C9A227';
+const RED = '#851D21';
+const BLACK = '#303030';
+const CREAM = '#E6D6C6';
 
 const styles = {
 app: { fontFamily: 'Arial', backgroundColor: '#F4F6F9', minHeight: '100vh' },
-header: { backgroundColor: GREEN, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+header: { backgroundColor: BLACK, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `4px solid ${RED}` },
 body: { padding: '24px 32px' },
 toolbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
 search: { padding: '8px 14px', borderRadius: '6px', border: '1px solid #ccc', width: '280px', fontSize: '14px' },
-addBtn: { backgroundColor: GOLD, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
-exportBtn: { backgroundColor: GREEN, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
-importBtn: { backgroundColor: GOLD, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
-dashBtn: { backgroundColor: GREEN, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
-usersBtn: { backgroundColor: 'transparent', border: '1px solid #C9A227', color: '#C9A227', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' },
+addBtn: { backgroundColor: RED, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+exportBtn: { backgroundColor: BLACK, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+importBtn: { backgroundColor: RED, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+dashBtn: { backgroundColor: RED, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+usersBtn: { backgroundColor: 'transparent', border: `1px solid ${CREAM}`, color: CREAM, padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' },
 card: { backgroundColor: 'white', borderRadius: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.1)', overflow: 'hidden' },
 table: { width: '100%', borderCollapse: 'collapse' },
-th: { backgroundColor: GREEN, color: 'white', padding: '12px 16px', textAlign: 'left', fontSize: '13px' },
+th: { backgroundColor: BLACK, color: 'white', padding: '12px 16px', textAlign: 'left', fontSize: '13px' },
 td: { padding: '12px 16px', borderBottom: '1px solid #F0F0F0', fontSize: '14px' },
 badge: (status) => ({
 backgroundColor: status === 'lead' ? '#FFF3CD' : status === 'active' ? '#D4EDDA' : status === 'prospect' ? '#CCE5FF' : '#F8D7DA',
@@ -109,14 +110,14 @@ if (!user) return <Login onLogin={handleLogin} />;
 return (
 <div style={styles.app}>
 <div style={styles.header}>
-<span style={{ color: '#C9A227', fontWeight: 'bold', fontSize: '20px' }}>Financial Consulting Network, LLC</span>
+<span style={{ color: CREAM, fontWeight: 'bold', fontSize: '20px' }}>Financial Consulting Network, LLC</span>
 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-<span style={{ color: '#E8D5A3', fontSize: '14px' }}>Welcome, {user.name}</span>
+<span style={{ color: CREAM, fontSize: '14px' }}>Welcome, {user.name}</span>
 <button onClick={() => setShowDashboard(true)} style={styles.dashBtn}>📊 Dashboard</button>
 {user.role === 'admin' && (
 <button onClick={() => setShowUsers(true)} style={styles.usersBtn}>👥 Manage Users</button>
 )}
-<button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: '1px solid #C9A227', color: '#C9A227', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>
+<button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: `1px solid ${CREAM}`, color: CREAM, padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>
 Sign Out
 </button>
 </div>
@@ -125,7 +126,7 @@ Sign Out
 <div style={styles.body}>
 <div style={styles.toolbar}>
 <div>
-<h2 style={{ margin: 0 }}>Contacts ({filtered.length})</h2>
+<h2 style={{ margin: 0, color: BLACK }}>Contacts ({filtered.length})</h2>
 <p style={{ margin: '4px 0 0', color: '#888', fontSize: '13px' }}>{contacts.length} total records</p>
 </div>
 <div style={{ display: 'flex', gap: '12px' }}>
@@ -138,10 +139,10 @@ Sign Out
 
 <div style={{ display: 'flex', gap: '8px', marginBottom: '10px' }}>
 {[
-{ key: 'all', label: '👥 All Clients', color: GREEN },
-{ key: 'insurance', label: '🏥 Insurance', color: '#0d6efd' },
-{ key: 'financial', label: '💰 Financial', color: '#198754' },
-{ key: 'both', label: '⭐ Both', color: '#6f42c1' },
+{ key: 'all', label: '👥 All Clients', color: BLACK },
+{ key: 'insurance', label: '🏥 Insurance', color: RED },
+{ key: 'financial', label: '💰 Financial', color: '#6f42c1' },
+{ key: 'both', label: '⭐ Both', color: '#0d6efd' },
 ].map(({ key, label, color }) => (
 <button key={key} onClick={() => setFilterType(key)} style={styles.filterBtn(filterType === key, color)}>{label}</button>
 ))}
@@ -179,7 +180,7 @@ Sign Out
 ) : (
 paginated.map(contact => (
 <tr key={contact.id} onClick={() => setSelectedContact(contact)} style={{ cursor: 'pointer' }}
-onMouseEnter={e => e.currentTarget.style.backgroundColor = '#F8FAF8'}
+onMouseEnter={e => e.currentTarget.style.backgroundColor = '#FDF5F5'}
 onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}>
 <td style={{ ...styles.td, fontWeight: '600' }}>{contact.name}</td>
 <td style={styles.td}>{contact.email}</td>
