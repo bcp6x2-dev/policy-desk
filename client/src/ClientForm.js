@@ -34,7 +34,7 @@ function ClientForm({ onSave, onClose }) {
 
   const RED = '#851D21';
   const BLACK = '#303030';
-  const CREAM = '#E6D6C6';
+  // eslint-disable-next-line no-unused-vars const CREAM = '#E6D6C6';
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
