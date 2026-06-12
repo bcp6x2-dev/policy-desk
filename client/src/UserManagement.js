@@ -11,23 +11,23 @@ const [form, setForm] = useState({ name: '', email: '', password: '', role: 'emp
 const [saving, setSaving] = useState(false);
 const [error, setError] = useState('');
 
-const GREEN = '#2B5C2B';
-const GOLD = '#C9A227';
+const RED = '#851D21';
+const BLACK = '#303030';
 const token = localStorage.getItem('token');
 
 const s = {
 overlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
 modal: { backgroundColor: 'white', borderRadius: '12px', width: '700px', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' },
-header: { backgroundColor: GREEN, padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+header: { backgroundColor: BLACK, padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '4px solid ' + RED },
 headerTitle: { color: 'white', margin: 0, fontSize: '18px', fontWeight: 'bold' },
 body: { padding: '24px', overflowY: 'auto', flex: 1 },
 footer: { padding: '16px 24px', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: '10px' },
 table: { width: '100%', borderCollapse: 'collapse' },
-th: { backgroundColor: GREEN, color: 'white', padding: '10px 14px', textAlign: 'left', fontSize: '13px' },
+th: { backgroundColor: BLACK, color: 'white', padding: '10px 14px', textAlign: 'left', fontSize: '13px' },
 td: { padding: '10px 14px', borderBottom: '1px solid #eee', fontSize: '14px' },
-addBtn: { backgroundColor: GOLD, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+addBtn: { backgroundColor: RED, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
 closeBtn: { padding: '9px 18px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', fontSize: '14px', backgroundColor: 'white' },
-saveBtn: { backgroundColor: GREEN, color: 'white', border: 'none', padding: '9px 24px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
+saveBtn: { backgroundColor: RED, color: 'white', border: 'none', padding: '9px 24px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
 label: { display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#555', textTransform: 'uppercase' },
 input: { width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box', marginBottom: '12px' },
 select: { width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box', marginBottom: '12px' },
@@ -37,7 +37,7 @@ editBtn: { backgroundColor: 'transparent', border: '1px solid #ccc', padding: '4
 deleteBtn: { backgroundColor: 'transparent', border: '1px solid #F5C6CB', color: '#721C24', padding: '4px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' },
 formOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 },
 formModal: { backgroundColor: 'white', borderRadius: '10px', padding: '28px', width: '420px', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' },
-formTitle: { margin: '0 0 20px', color: GREEN },
+formTitle: { margin: '0 0 20px', color: RED },
 errorMsg: { backgroundColor: '#F8D7DA', color: '#721C24', padding: '10px', borderRadius: '6px', marginBottom: '12px', fontSize: '14px' },
 };
 
