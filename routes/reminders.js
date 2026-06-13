@@ -37,17 +37,16 @@ router.get('/unread-count', async (req, res) => {
   }
 });
 
-// POST create a reminder (called when financial plan start date is saved)
+// POST create a reminder
 router.post('/', async (req, res) => {
   try {
     const { contact_id, broker_name, plan_start_date } = req.body;
     if (!plan_start_date) return res.status(400).json({ error: 'plan_start_date required' });
 
-    // Calculate 11 months from plan start date
-    const reminderDate = new Date(plan_start_date + 'T12:00:00'); const reminderDate = new DATE(startDATE);    
+    const startDate = new Date(plan_start_date + 'T12:00:00');
+    const reminderDate = new Date(startDate);
     reminderDate.setMonth(reminderDate.getMonth() + 11);
 
-    // Delete any existing reminder for this contact to avoid duplicates
     await pool.query('DELETE FROM reminders WHERE contact_id = $1', [contact_id]);
 
     const result = await pool.query(
