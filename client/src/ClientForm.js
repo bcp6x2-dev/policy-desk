@@ -116,25 +116,28 @@ function ClientForm({ onSave, onClose }) {
         return;
       }
       const data = await res.json();
-setSavedContactId(data.id);
+      setSavedContactId(data.id);
 
-// Schedule 11-month reminder if financial plan start date is set
-if (form.financial_plan_start_date) {
-  const userRaw = localStorage.getItem('user');
-  const loggedInUser = userRaw ? JSON.parse(userRaw) : null;
-  await fetch('https://policy-desk-production.up.railway.app/api/reminders', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-    body: JSON.stringify({
-      contact_id: data.id,
-      broker_name: loggedInUser ? loggedInUser.name : form.assigned_to,
-      plan_start_date: form.financial_plan_start_date,
-    }),
-  });
-}
+      if (form.financial_plan_start_date) {
+        const userRaw = localStorage.getItem('user');
+        const loggedInUser = userRaw ? JSON.parse(userRaw) : null;
+        await fetch('https://policy-desk-production.up.railway.app/api/reminders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            contact_id: data.id,
+            broker_name: loggedInUser ? loggedInUser.name : form.assigned_to,
+            plan_start_date: form.financial_plan_start_date,
+          }),
+        });
+      }
 
-onSave(data);
-onClose();
+      onSave(data);
+      onClose();
+    } catch (err) {
+      console.error(err);
+      setError('Network error. Please try again.');
+    }
   }
 
   const specialties = ['Cardiology','Dermatology','Endocrinology','Family Medicine','Gastroenterology','General Surgery','Geriatrics','Hematology','Internal Medicine','Nephrology','Neurology','Obstetrics & Gynecology','Oncology','Ophthalmology','Orthopedics','Otolaryngology (ENT)','Pediatrics','Psychiatry','Pulmonology','Radiology','Rheumatology','Urology','Other'];
