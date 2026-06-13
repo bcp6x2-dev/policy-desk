@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Login from './Login';
 import ClientForm from './ClientForm';
 import ClientDetail from './ClientDetail';
@@ -20,6 +20,10 @@ const [showImport, setShowImport] = useState(false);
 const [showDashboard, setShowDashboard] = useState(false);
 const [showUsers, setShowUsers] = useState(false);
 const [currentPage, setCurrentPage] = useState(1);
+const [reminders, setReminders] = useState([]);
+const [unreadCount, setUnreadCount] = useState(0);
+const [showBell, setShowBell] = useState(false);
+const bellRef = useRef(null);
 const contactsPerPage = 25;
 
 useEffect(() => {
@@ -31,12 +35,26 @@ setLoading(false);
 }, []);
 
 useEffect(() => {
-if (user) fetchContacts();
+if (user) {
+fetchContacts();
+fetchReminders(user);
+}
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, [user]);
 
 useEffect(() => {
 setCurrentPage(1);
 }, [search, filterType, filterStatus]);
+
+useEffect(() => {
+function handleClickOutside(e) {
+if (bellRef.current && !bellRef.current.contains(e.target)) {
+setShowBell(false);
+}
+}
+document.addEventListener('mousedown', handleClickOutside);
+return () => document.removeEventListener('mousedown', handleClickOutside);
+}, []);
 
 function handleLogin(loggedInUser) {
 setUser(loggedInUser);
@@ -50,6 +68,8 @@ localStorage.removeItem('user');
 setUser(null);
 setToken(null);
 setContacts([]);
+setReminders([]);
+setUnreadCount(0);
 }
 
 function fetchContacts() {
@@ -59,6 +79,31 @@ fetch('https://policy-desk-production.up.railway.app/api/contacts')
 setContacts(data);
 setLoading(false);
 });
+}
+
+async function fetchReminders(u) {
+try {
+const brokerName = u ? u.name : '';
+const res = await fetch(`https://policy-desk-production.up.railway.app/api/reminders?broker=${encodeURIComponent(brokerName)}`);
+const data = await res.json();
+if (Array.isArray(data)) {
+setReminders(data);
+const unread = data.filter(r => !r.is_read && new Date(r.reminder_date) <= new Date()).length;
+setUnreadCount(unread);
+}
+} catch (err) {
+console.error(err);
+}
+}
+
+async function markAsRead(id) {
+await fetch(`https://policy-desk-production.up.railway.app/api/reminders/${id}/read`, { method: 'PUT' });
+fetchReminders(user);
+}
+
+async function markAllRead() {
+await fetch(`https://policy-desk-production.up.railway.app/api/reminders/mark-all-read?broker=${encodeURIComponent(user.name)}`, { method: 'PUT' });
+fetchReminders(user);
 }
 
 const filtered = contacts.filter(c => {
@@ -107,20 +152,106 @@ color: active ? 'white' : '#555', boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
 
 if (!user) return <Login onLogin={handleLogin} />;
 
+const dueReminders = reminders.filter(r => new Date(r.reminder_date) <= new Date());
+const upcomingReminders = reminders.filter(r => new Date(r.reminder_date) > new Date());
+
 return (
 <div style={styles.app}>
 <div style={styles.header}>
-<span style={{ color: CREAM, fontWeight: 'bold', fontSize: '20px' }}>Financial Consulting Network, LLC</span>
-<div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-<span style={{ color: CREAM, fontSize: '14px' }}>Welcome, {user.name}</span>
-<button onClick={() => setShowDashboard(true)} style={styles.dashBtn}>📊 Dashboard</button>
-{user.role === 'admin' && (
-<button onClick={() => setShowUsers(true)} style={styles.usersBtn}>👥 Manage Users</button>
-)}
-<button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: `1px solid ${CREAM}`, color: CREAM, padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>
-Sign Out
-</button>
-</div>
+  <span style={{ color: CREAM, fontWeight: 'bold', fontSize: '20px' }}>Financial Consulting Network, LLC</span>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+    <span style={{ color: CREAM, fontSize: '14px' }}>Welcome, {user.name}</span>
+
+    {/* BELL NOTIFICATION */}
+    <div ref={bellRef} style={{ position: 'relative' }}>
+      <button
+        onClick={() => setShowBell(!showBell)}
+        style={{ backgroundColor: 'transparent', border: 'none', cursor: 'pointer', position: 'relative', padding: '4px' }}
+      >
+        <span style={{ fontSize: '20px' }}>🔔</span>
+        {unreadCount > 0 && (
+          <span style={{
+            position: 'absolute', top: '-2px', right: '-2px',
+            backgroundColor: RED, color: 'white', borderRadius: '50%',
+            fontSize: '10px', fontWeight: 'bold', minWidth: '16px', height: '16px',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 2px'
+          }}>
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
+      </button>
+
+      {showBell && (
+        <div style={{
+          position: 'absolute', top: '36px', right: 0, backgroundColor: 'white',
+          borderRadius: '10px', boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+          width: '360px', zIndex: 2000, overflow: 'hidden'
+        }}>
+          <div style={{ backgroundColor: BLACK, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `3px solid ${RED}` }}>
+            <span style={{ color: 'white', fontWeight: '700', fontSize: '14px' }}>🔔 Reminders</span>
+            {unreadCount > 0 && (
+              <button onClick={markAllRead} style={{ backgroundColor: 'transparent', border: `1px solid ${CREAM}`, color: CREAM, padding: '3px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>
+                Mark all read
+              </button>
+            )}
+          </div>
+
+          <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+            {reminders.length === 0 ? (
+              <p style={{ padding: '20px', textAlign: 'center', color: '#888', fontSize: '14px' }}>No reminders yet.</p>
+            ) : (
+              <>
+                {dueReminders.length > 0 && (
+                  <div>
+                    <div style={{ padding: '8px 16px', backgroundColor: '#FDF5F5', fontSize: '11px', fontWeight: '700', color: RED, textTransform: 'uppercase' }}>
+                      Due Now ({dueReminders.length})
+                    </div>
+                    {dueReminders.map(r => (
+                      <div key={r.id} style={{ padding: '12px 16px', borderBottom: '1px solid #F0F0F0', backgroundColor: r.is_read ? 'white' : '#FFF8F8', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: '600', fontSize: '13px', color: BLACK }}>{r.client_name || `${r.first_name} ${r.last_name}`}</div>
+                          <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>{r.message}</div>
+                          <div style={{ fontSize: '11px', color: RED, marginTop: '4px', fontWeight: '600' }}>Due: {new Date(r.reminder_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                        </div>
+                        {!r.is_read && (
+                          <button onClick={() => markAsRead(r.id)} style={{ backgroundColor: 'transparent', border: '1px solid #ddd', color: '#666', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', marginLeft: '8px', whiteSpace: 'nowrap' }}>
+                            Dismiss
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {upcomingReminders.length > 0 && (
+                  <div>
+                    <div style={{ padding: '8px 16px', backgroundColor: '#F8F9FA', fontSize: '11px', fontWeight: '700', color: '#666', textTransform: 'uppercase' }}>
+                      Upcoming ({upcomingReminders.length})
+                    </div>
+                    {upcomingReminders.map(r => (
+                      <div key={r.id} style={{ padding: '12px 16px', borderBottom: '1px solid #F0F0F0', backgroundColor: 'white' }}>
+                        <div style={{ fontWeight: '600', fontSize: '13px', color: BLACK }}>{r.client_name || `${r.first_name} ${r.last_name}`}</div>
+                        <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>{r.message}</div>
+                        <div style={{ fontSize: '11px', color: '#888', marginTop: '4px' }}>Due: {new Date(r.reminder_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+
+    <button onClick={() => setShowDashboard(true)} style={styles.dashBtn}>📊 Dashboard</button>
+    {user.role === 'admin' && (
+      <button onClick={() => setShowUsers(true)} style={styles.usersBtn}>👥 Manage Users</button>
+    )}
+    <button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: `1px solid ${CREAM}`, color: CREAM, padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>
+      Sign Out
+    </button>
+  </div>
 </div>
 
 <div style={styles.body}>
