@@ -72,24 +72,39 @@ function ClientDetail({ contact, onClose, onSave }) {
     setNoteSaving(false);
   }
 
-  async function handleSave() {
-    setSaving(true);
-    try {
-      const token = localStorage.getItem('token');
-      const res = await fetch(`https://policy-desk-production.up.railway.app/api/contacts/${form.id}`, {
-        method: 'PUT',
+async function handleSave() {
+  setSaving(true);
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`https://policy-desk-production.up.railway.app/api/contacts/${form.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(form),
+    });
+    const data = await res.json();
+    onSave(data);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+
+    // Schedule 11-month reminder if financial plan start date is set
+    if (form.financial_plan_start_date) {
+      const userRaw = localStorage.getItem('user');
+      const user = userRaw ? JSON.parse(userRaw) : null;
+      await fetch('https://policy-desk-production.up.railway.app/api/reminders', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          contact_id: form.id,
+          broker_name: user ? user.name : form.assigned_to,
+          plan_start_date: form.financial_plan_start_date,
+        }),
       });
-      const data = await res.json();
-      onSave(data);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    } catch (err) {
-      console.error(err);
     }
-    setSaving(false);
+  } catch (err) {
+    console.error(err);
   }
+  setSaving(false);
+}
 // eslint-disable-next-line no-unused-vars
   const specialties = ['Cardiology','Dermatology','Endocrinology','Family Medicine','Gastroenterology','General Surgery','Geriatrics','Hematology','Internal Medicine','Nephrology','Neurology','Obstetrics & Gynecology','Oncology','Ophthalmology','Orthopedics','Otolaryngology (ENT)','Pediatrics','Psychiatry','Pulmonology','Radiology','Rheumatology','Urology','Other'];
   const healthCarriers = ['Aetna','Anthem','Cigna','Devoted','Essence','Humana','United Health'];
