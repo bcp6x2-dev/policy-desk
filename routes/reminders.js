@@ -44,7 +44,7 @@ router.post('/', async (req, res) => {
     if (!plan_start_date) return res.status(400).json({ error: 'plan_start_date required' });
 
     // Calculate 11 months from plan start date
-    const reminderDate = new Date(plan_start_date);
+    const reminderDate = new Date(plan_start_date + 'T12:00:00'); const reminderDate = new DATE(startDATE);    
     reminderDate.setMonth(reminderDate.getMonth() + 11);
 
     // Delete any existing reminder for this contact to avoid duplicates
