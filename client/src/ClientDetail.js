@@ -207,4 +207,3 @@ function ClientDetail({ contact, onClose, onSave }) {
     justifyContent: 'space-between',
     alignItems: 'center',
   }}
->
