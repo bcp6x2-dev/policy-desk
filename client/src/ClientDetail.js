@@ -201,4 +201,10 @@ function ClientDetail({ contact, onClose, onSave }) {
                 <div style={col}><label style={label}>County</label><input style={input} name="address_county" value={form.address_county || ''} onChange={handleChange} /></div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}><div
+  style={{
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  }}
+>
