@@ -47,29 +47,44 @@ function ClientDetail({ contact, onClose, onSave }) {
       ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   }
 
-  async function handleSaveNote() {
-    if (!noteBody.trim()) return;
-    setNoteSaving(true);
-    try {
-      const token = localStorage.getItem('token');
+async function handleSave() {
+  setSaving(true);
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(`https://policy-desk-production.up.railway.app/api/contacts/${form.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify(form),
+    });
+    const data = await res.json();
+    onSave(data);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+
+    const planDate = form.financial_plan_start_date
+      ? (typeof form.financial_plan_start_date === 'string'
+          ? form.financial_plan_start_date.split('T')[0]
+          : form.financial_plan_start_date)
+      : null;
+
+    if (planDate) {
       const userRaw = localStorage.getItem('user');
       const user = userRaw ? JSON.parse(userRaw) : null;
-      const broker_name = user ? user.name : 'Unknown';
-      const res = await fetch(`https://policy-desk-production.up.railway.app/api/notes/${contact.id}`, {
+      await fetch('https://policy-desk-production.up.railway.app/api/reminders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ body: noteBody, broker_name }),
+        body: JSON.stringify({
+          contact_id: form.id,
+          broker_name: user ? user.name : form.assigned_to,
+          plan_start_date: planDate,
+        }),
       });
-      if (res.ok) {
-        const newNote = await res.json();
-        setNotesList([newNote, ...notesList]);
-        setNoteBody('');
-        setShowNoteModal(false);
-      }
-    } catch (err) {
-      console.error(err);
     }
-    setNoteSaving(false);
+  } catch (err) {
+    console.error(err);
+  }
+  setSaving(false);
+}
   }
 
 async function handleSave() {
@@ -362,7 +377,7 @@ async function handleSave() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               {saved && <span style={{ color: '#155724', fontSize: '13px', fontWeight: '600' }}>✓ Saved!</span>}
               <button onClick={onClose} style={{ padding: '9px 18px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', fontSize: '14px', backgroundColor: 'white' }}>Close</button>
-              <button onClick={handleSave} disabled={saving} style={{ padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: saving ? '#888' : BLACK, color: 'white', fontWeight: '600' }}>
+              <button onClick={handleSave} disabled={saving} style={{ padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: saving ? '#888' : RED, color: 'white', fontWeight: '600' }}>
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
             </div>
@@ -389,6 +404,6 @@ async function handleSave() {
 
     </div>
   );
-}
+
 
 export default ClientDetail;
