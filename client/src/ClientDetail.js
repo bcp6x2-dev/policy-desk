@@ -47,80 +47,71 @@ function ClientDetail({ contact, onClose, onSave }) {
       ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   }
 
-async function handleSave() {
-  setSaving(true);
-  try {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`https://policy-desk-production.up.railway.app/api/contacts/${form.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(form),
-    });
-    const data = await res.json();
-    onSave(data);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-
-    const planDate = form.financial_plan_start_date
-      ? (typeof form.financial_plan_start_date === 'string'
-          ? form.financial_plan_start_date.split('T')[0]
-          : form.financial_plan_start_date)
-      : null;
-
-    if (planDate) {
+  async function handleSaveNote() {
+    if (!noteBody.trim()) return;
+    setNoteSaving(true);
+    try {
+      const token = localStorage.getItem('token');
       const userRaw = localStorage.getItem('user');
       const user = userRaw ? JSON.parse(userRaw) : null;
-      await fetch('https://policy-desk-production.up.railway.app/api/reminders', {
+      const broker_name = user ? user.name : 'Unknown';
+      const res = await fetch(`https://policy-desk-production.up.railway.app/api/notes/${contact.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({
-          contact_id: form.id,
-          broker_name: user ? user.name : form.assigned_to,
-          plan_start_date: planDate,
-        }),
+        body: JSON.stringify({ body: noteBody, broker_name }),
       });
+      if (res.ok) {
+        const newNote = await res.json();
+        setNotesList([newNote, ...notesList]);
+        setNoteBody('');
+        setShowNoteModal(false);
+      }
+    } catch (err) {
+      console.error(err);
     }
-  } catch (err) {
-    console.error(err);
-  }
-  setSaving(false);
-}
+    setNoteSaving(false);
   }
 
-async function handleSave() {
-  setSaving(true);
-  try {
-    const token = localStorage.getItem('token');
-    const res = await fetch(`https://policy-desk-production.up.railway.app/api/contacts/${form.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify(form),
-    });
-    const data = await res.json();
-    onSave(data);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-
-    // Schedule 11-month reminder if financial plan start date is set
-    if (form.financial_plan_start_date) {
-      const userRaw = localStorage.getItem('user');
-      const user = userRaw ? JSON.parse(userRaw) : null;
-      await fetch('https://policy-desk-production.up.railway.app/api/reminders', {
-        method: 'POST',
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`https://policy-desk-production.up.railway.app/api/contacts/${form.id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({
-          contact_id: form.id,
-          broker_name: user ? user.name : form.assigned_to,
-          plan_start_date: form.financial_plan_start_date,
-        }),
+        body: JSON.stringify(form),
       });
+      const data = await res.json();
+      onSave(data);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+
+      const planDate = form.financial_plan_start_date
+        ? (typeof form.financial_plan_start_date === 'string'
+            ? form.financial_plan_start_date.split('T')[0]
+            : form.financial_plan_start_date)
+        : null;
+
+      if (planDate) {
+        const userRaw = localStorage.getItem('user');
+        const user = userRaw ? JSON.parse(userRaw) : null;
+        await fetch('https://policy-desk-production.up.railway.app/api/reminders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({
+            contact_id: form.id,
+            broker_name: user ? user.name : form.assigned_to,
+            plan_start_date: planDate,
+          }),
+        });
+      }
+    } catch (err) {
+      console.error(err);
     }
-  } catch (err) {
-    console.error(err);
+    setSaving(false);
   }
-  setSaving(false);
-}
-// eslint-disable-next-line no-unused-vars
+
+  // eslint-disable-next-line no-unused-vars
   const specialties = ['Cardiology','Dermatology','Endocrinology','Family Medicine','Gastroenterology','General Surgery','Geriatrics','Hematology','Internal Medicine','Nephrology','Neurology','Obstetrics & Gynecology','Oncology','Ophthalmology','Orthopedics','Otolaryngology (ENT)','Pediatrics','Psychiatry','Pulmonology','Radiology','Rheumatology','Urology','Other'];
   const healthCarriers = ['Aetna','Anthem','Cigna','Devoted','Essence','Humana','United Health'];
   const healthPlanTypes = ['HMO','PPO','EPO','Medicare Advantage','Medicare Supplement Insurance','Other'];
@@ -133,7 +124,7 @@ async function handleSave() {
   const label = { display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#555', textTransform: 'uppercase' };
   const row = { display: 'flex', gap: '12px', marginBottom: '12px' };
   const col = { flex: 1 };
-  const sectionTitle = { fontSize: '13px', fontWeight: '700', color: RED, textTransform: 'uppercase', marginBottom: '12px', paddingBottom: '6px', borderBottom: '1px solid #E8F0FA' };
+  const sectionTitle = { fontSize: '13px', fontWeight: '700', color: RED, textTransform: 'uppercase', marginBottom: '12px', paddingBottom: '6px', borderBottom: '1px solid #F5E8E8' };
   const conditionalBox = { backgroundColor: '#FDF5F5', border: '1px solid #E8C8C8', borderRadius: '8px', padding: '16px', marginBottom: '12px' };
   const mutedBox = { backgroundColor: '#F5F5F5', border: '1px solid #E0E0E0', borderRadius: '8px', padding: '12px', marginBottom: '12px', color: '#888', fontSize: '13px', fontStyle: 'italic' };
 
@@ -143,7 +134,7 @@ async function handleSave() {
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
       <div style={{ backgroundColor: 'white', borderRadius: '12px', width: '90vw', maxWidth: '720px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 8px 30px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
 
-        <div style={{ backgroundColor: RED, padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+        <div style={{ backgroundColor: BLACK, padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, borderBottom: '4px solid ' + RED }}>
           <div>
             <h2 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 'bold' }}>{clientName}</h2>
             <p style={{ color: CREAM, fontSize: '13px', margin: '2px 0 0' }}>{form.status}</p>
@@ -210,200 +201,4 @@ async function handleSave() {
                 <div style={col}><label style={label}>County</label><input style={input} name="address_county" value={form.address_county || ''} onChange={handleChange} /></div>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <input type="checkbox" name="mailing_different" checked={form.mailing_different || false} onChange={handleChange} id="mailing_different_edit" />
-                <label htmlFor="mailing_different_edit" style={{ fontSize: '14px', cursor: 'pointer' }}>Mailing address is different than home address</label>
-              </div>
-              {form.mailing_different && (
-                <div style={conditionalBox}>
-                  <p style={{ ...sectionTitle, marginBottom: '12px' }}>Mailing Address</p>
-                  <div style={{ marginBottom: '12px' }}><label style={label}>Street Address</label><input style={input} name="mailing_address" value={form.mailing_address || ''} onChange={handleChange} /></div>
-                </div>
-              )}
-
-              <p style={sectionTitle}>Client Type</p>
-              <div style={{ display: 'flex', gap: '24px', marginBottom: '12px' }}>
-                {['Health Insurance', 'Life Insurance', 'Finance'].map(type => (
-                  <label key={type} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
-                    <input type="checkbox" name="client_types" value={type} checked={getClientTypes().includes(type)} onChange={handleChange} />{type}
-                  </label>
-                ))}
-              </div>
-
-              <p style={sectionTitle}>Additional Info</p>
-              <div style={row}>
-                <div style={col}><label style={label}>Source</label><select style={select} name="source" value={form.source || 'manual'} onChange={handleChange}><option value="manual">Manual Entry</option><option value="referral">Referral</option><option value="web_form">Web Form</option><option value="imported">Imported</option></select></div>
-                <div style={col}><label style={label}>Smoker?</label><select style={select} name="smoker" value={form.smoker} onChange={handleChange}><option value={false}>No</option><option value={true}>Yes</option></select></div>
-                <div style={col}><label style={label}>Status</label><select style={select} name="status" value={form.status || 'lead'} onChange={handleChange}><option value="lead">Lead</option><option value="prospect">Prospect</option><option value="active">Active Client</option><option value="inactive">Inactive</option></select></div>
-              </div>
-              <div style={row}>
-                <div style={col}><label style={label}>Household Size</label><input style={input} type="number" name="household_size" value={form.household_size || ''} onChange={handleChange} /></div>
-                <div style={col}><label style={label}>Assigned Broker</label><select style={select} name="assigned_to" value={form.assigned_to || 'Terrell Lane'} onChange={handleChange}><option value="Terrell Lane">Terrell Lane</option></select></div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'health' && (
-            <div>
-              <p style={sectionTitle}>Client — Health Insurance</p>
-              <div style={row}>
-                <div style={col}><label style={label}>Current Carrier</label><select style={select} name="health_carrier" value={form.health_carrier || ''} onChange={handleChange}><option value="">Select...</option>{healthCarriers.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                <div style={col}><label style={label}>Plan Type</label><select style={select} name="health_plan_type" value={form.health_plan_type || ''} onChange={handleChange}><option value="">Select...</option>{healthPlanTypes.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
-              </div>
-              {form.health_plan_type === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Plan Type</label><input style={input} name="health_plan_type_other" value={form.health_plan_type_other || ''} onChange={handleChange} /></div>)}
-              <div style={{ marginBottom: '12px' }}><label style={label}>Policy Plan Start Date</label><input style={{ ...input, width: '200px' }} type="date" name="plan_start_date" value={form.plan_start_date ? form.plan_start_date.split('T')[0] : ''} onChange={handleChange} /></div>
-
-              <p style={sectionTitle}>Primary Hospital</p>
-              <div style={row}>
-                <div style={col}><label style={label}>Hospital Network Name</label><input style={input} name="primary_hospital_name" value={form.primary_hospital_name || ''} onChange={handleChange} /></div>
-                <div style={col}><label style={label}>Location (City, State)</label><input style={input} name="primary_hospital_location" value={form.primary_hospital_location || ''} onChange={handleChange} /></div>
-              </div>
-
-              <p style={sectionTitle}>Physicians</p>
-              <div style={{ marginBottom: '12px' }}>
-                <label style={label}>Physician Name(s)</label>
-                <input style={input} name="physician_name" value={form.physician_name || ''} onChange={handleChange} placeholder="e.g. Dr. Smith; Dr. Jones" />
-              </div>
-              <div style={{ marginBottom: '12px' }}>
-                <label style={label}>Physician Specialty(ies)</label>
-                <input style={input} name="physician_specialty" value={form.physician_specialty || ''} onChange={handleChange} placeholder="e.g. Cardiology; Family Medicine" />
-              </div>
-
-              <p style={sectionTitle}>Preferred Pharmacy</p>
-              <div style={{ marginBottom: '12px' }}><label style={label}>Pharmacy Name</label><select style={select} name="pharmacy_name" value={form.pharmacy_name || ''} onChange={handleChange}><option value="">Select...</option>{pharmacies.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
-              {form.pharmacy_name === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Pharmacy Name</label><input style={input} name="pharmacy_other" value={form.pharmacy_other || ''} onChange={handleChange} /></div>)}
-              <div style={row}>
-                <div style={col}><label style={label}>Pharmacy Address</label><input style={input} name="pharmacy_address" value={form.pharmacy_address || ''} onChange={handleChange} /></div>
-                <div style={col}><label style={label}>Pharmacy Phone</label><input style={input} name="pharmacy_phone" value={form.pharmacy_phone || ''} onChange={handleChange} /></div>
-              </div>
-
-              <p style={sectionTitle}>Spouse — Health Insurance</p>
-              {isMarried ? (
-                <div style={conditionalBox}>
-                  <div style={row}>
-                    <div style={col}><label style={label}>Spouse Current Carrier</label><select style={select} name="spouse_health_carrier" value={form.spouse_health_carrier || ''} onChange={handleChange}><option value="">Select...</option>{healthCarriers.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                    <div style={col}><label style={label}>Spouse Plan Type</label><select style={select} name="spouse_health_plan_type" value={form.spouse_health_plan_type || ''} onChange={handleChange}><option value="">Select...</option>{healthPlanTypes.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
-                  </div>
-                  {form.spouse_health_plan_type === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Spouse Plan Type</label><input style={input} name="spouse_health_plan_type_other" value={form.spouse_health_plan_type_other || ''} onChange={handleChange} /></div>)}
-                  <div><label style={label}>Spouse Policy Plan Start Date</label><input style={{ ...input, width: '200px' }} type="date" name="spouse_plan_start_date" value={form.spouse_plan_start_date ? form.spouse_plan_start_date.split('T')[0] : ''} onChange={handleChange} /></div>
-                </div>
-              ) : (
-                <div style={mutedBox}>Mark client as married in the Demographic tab to unlock spouse insurance fields.</div>
-              )}
-            </div>
-          )}
-
-          {activeTab === 'life' && (
-            <div>
-              <p style={sectionTitle}>Life Insurance</p>
-              <div style={row}>
-                <div style={col}><label style={label}>Current Carrier</label><select style={select} name="life_carrier" value={form.life_carrier || ''} onChange={handleChange}><option value="">Select...</option>{['American Amicable','Allstate','Cica','Columbian','Foresters','Gerber','GTL','Mutual of Omaha','TransAmerica','Other'].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                <div style={col}><label style={label}>Current Plan Type</label><select style={select} name="life_plan_type" value={form.life_plan_type || ''} onChange={handleChange}><option value="">Select...</option>{['Universal Life (UL)','Index UL','Whole Life','Term Life','Final Expense',"Children's Policy",'Ancillary Health Product'].map(p => <option key={p} value={p}>{p}</option>)}</select></div>
-              </div>
-              {form.life_carrier === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Carrier</label><input style={input} name="life_carrier_other" value={form.life_carrier_other || ''} onChange={handleChange} /></div>)}
-              <div style={row}>
-                <div style={col}><label style={label}>Coverage Type</label><select style={select} name="coverage_type" value={form.coverage_type || ''} onChange={handleChange}><option value="">Select...</option><option value="Individual">Individual</option><option value="Joint">Joint</option></select></div>
-                <div style={col}><label style={label}>Interested Coverage</label><input style={input} name="interested_coverage" value={form.interested_coverage || ''} onChange={handleChange} placeholder="e.g. $250,000" /></div>
-              </div>
-              <div><label style={label}>Policy Plan Start Date</label><input style={{ ...input, width: '200px' }} type="date" name="life_plan_start_date" value={form.life_plan_start_date ? form.life_plan_start_date.split('T')[0] : ''} onChange={handleChange} /></div>
-            </div>
-          )}
-
-          {activeTab === 'financial' && (
-            <div>
-              <p style={sectionTitle}>Current Financial Products</p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
-                {financialProducts.map(product => (
-                  <label key={product} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
-                    <input type="checkbox" value={product}
-                      checked={form.current_financial_products ? form.current_financial_products.includes(product) : false}
-                      onChange={e => {
-                        const current = form.current_financial_products ? form.current_financial_products.split(',').map(s => s.trim()).filter(Boolean) : [];
-                        const updated = e.target.checked ? [...current, product] : current.filter(p => p !== product);
-                        setForm({ ...form, current_financial_products: updated.join(', ') });
-                      }}
-                    />{product}
-                  </label>
-                ))}
-              </div>
-
-              <p style={sectionTitle}>Carrier & Details</p>
-              <div style={row}>
-                <div style={col}><label style={label}>Current Carrier</label><select style={select} name="financial_carrier" value={form.financial_carrier || ''} onChange={handleChange}><option value="">Select...</option>{financialCarriers.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                <div style={col}><label style={label}>Risk Tolerance</label><select style={select} name="risk_tolerance" value={form.risk_tolerance || ''} onChange={handleChange}><option value="">Select...</option><option value="conservative">Conservative</option><option value="moderate">Moderate</option><option value="aggressive">Aggressive</option></select></div>
-              </div>
-              {form.financial_carrier === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Carrier</label><input style={input} name="financial_carrier_other" value={form.financial_carrier_other || ''} onChange={handleChange} /></div>)}
-              <div style={row}>
-                <div style={col}><label style={label}>Retirement Goal Age</label><input style={input} type="number" name="retirement_goal_age" value={form.retirement_goal_age || ''} onChange={handleChange} placeholder="e.g. 65" /></div>
-                <div style={col}><label style={label}>Interested Financial Products</label><input style={input} name="interested_financial_products" value={form.interested_financial_products || ''} onChange={handleChange} /></div>
-              </div>
-              <div style={{ marginBottom: '12px' }}><label style={label}>Plan Start Date</label><input style={{ ...input, width: '200px' }} type="date" name="financial_plan_start_date" value={form.financial_plan_start_date ? form.financial_plan_start_date.split('T')[0] : ''} onChange={handleChange} /></div>
-            </div>
-          )}
-
-          {activeTab === 'notes' && (
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <p style={{ ...sectionTitle, margin: 0 }}>Notes</p>
-                <button type="button" onClick={() => setShowNoteModal(true)} style={{ backgroundColor: BLACK, color: 'white', border: 'none', padding: '7px 14px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}>+ Add Note</button>
-              </div>
-              {notesList.length === 0 ? (
-                <div style={mutedBox}>No notes yet. Click + Add Note to get started.</div>
-              ) : (
-                notesList.map(note => (
-                  <div key={note.id} style={{ border: '1px solid #E0E0E0', borderRadius: '8px', padding: '14px', marginBottom: '10px', backgroundColor: '#FAFAFA' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '12px', fontWeight: '600', color: RED }}>{note.broker_name}</span>
-                      <span style={{ fontSize: '12px', color: '#888' }}>{formatNoteDate(note.created_at)}</span>
-                    </div>
-                    <p style={{ margin: 0, fontSize: '14px', color: '#333' }}>{note.body}</p>
-                  </div>
-                ))
-              )}
-            </div>
-          )}
-
-          <div style={{ paddingTop: '16px', borderTop: '1px solid #eee', marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <button onClick={async () => {
-              if (window.confirm(`Delete ${clientName}? This cannot be undone.`)) {
-                const token = localStorage.getItem('token');
-                await fetch(`https://policy-desk-production.up.railway.app/api/contacts/${form.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-                onSave();
-                onClose();
-              }
-            }} style={{ padding: '9px 18px', borderRadius: '6px', border: '1px solid #F5C6CB', cursor: 'pointer', fontSize: '14px', backgroundColor: '#F8D7DA', color: '#721C24' }}>
-              🗑 Delete
-            </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              {saved && <span style={{ color: '#155724', fontSize: '13px', fontWeight: '600' }}>✓ Saved!</span>}
-              <button onClick={onClose} style={{ padding: '9px 18px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', fontSize: '14px', backgroundColor: 'white' }}>Close</button>
-              <button onClick={handleSave} disabled={saving} style={{ padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: saving ? '#888' : RED, color: 'white', fontWeight: '600' }}>
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {showNoteModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000 }}>
-          <div style={{ backgroundColor: 'white', borderRadius: '12px', width: '480px', padding: '24px', boxShadow: '0 8px 30px rgba(0,0,0,0.3)' }}>
-            <h3 style={{ margin: '0 0 16px', color: RED }}>Add Note</h3>
-            <div style={{ marginBottom: '12px', fontSize: '13px', color: '#888' }}>
-              {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} · {new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
-            </div>
-            <textarea value={noteBody} onChange={e => setNoteBody(e.target.value)} placeholder="Write your note here..." style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', minHeight: '120px', resize: 'vertical', boxSizing: 'border-box' }} />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '16px' }}>
-              <button type="button" onClick={() => { setShowNoteModal(false); setNoteBody(''); }} style={{ padding: '9px 18px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', fontSize: '14px', backgroundColor: 'white' }}>Cancel</button>
-              <button type="button" onClick={handleSaveNote} disabled={noteSaving} style={{ padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: BLACK, color: 'white', fontWeight: '600' }}>{noteSaving ? 'Saving...' : 'Save Note'}</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-    </div>
-  );
-
-
-export default ClientDetail;
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8
