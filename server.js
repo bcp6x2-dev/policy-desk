@@ -23,6 +23,8 @@ app.get('/', (req, res) => {
 });
 const notesRouter = require('./routes/notes');
 app.use('/api/notes', notesRouter);
+const remindersRouter = require('./routes/reminders');
+app.use('/api/reminders', remindersRouter);
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
