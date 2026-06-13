@@ -43,9 +43,12 @@ router.post('/', async (req, res) => {
     const { contact_id, broker_name, plan_start_date } = req.body;
     if (!plan_start_date) return res.status(400).json({ error: 'plan_start_date required' });
 
-    const startDate = new Date(plan_start_date + 'T12:00:00');
-    const reminderDate = new Date(startDate);
-    reminderDate.setMonth(reminderDate.getMonth() + 11);
+    const parts = plan_start_date.split('-');
+    const year = parseInt(parts[0]);
+    const month = parseInt(parts[1]) - 1;
+    const day = parseInt(parts[2]);
+    const reminderDate = new Date(year, month + 11, day);
+    const reminderDateStr = `${reminderDate.getFullYear()}-${String(reminderDate.getMonth() + 1).padStart(2, '0')}-${String(reminderDate.getDate()).padStart(2, '0')}`;
 
     await pool.query('DELETE FROM reminders WHERE contact_id = $1', [contact_id]);
 
@@ -55,7 +58,7 @@ router.post('/', async (req, res) => {
       [
         contact_id,
         broker_name,
-        reminderDate.toISOString().split('T')[0],
+        reminderDateStr,
         `Allocation review due for this client — 11 months since plan start date.`
       ]
     );
