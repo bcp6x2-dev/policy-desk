@@ -55,7 +55,8 @@ router.post('/', async (req, res) => {
       life_carrier, life_carrier_other, life_plan_type, coverage_type, interested_coverage, life_plan_start_date,
       current_financial_products, interested_financial_products,
       financial_carrier, financial_carrier_other, financial_plan_start_date,
-      retirement_goal_age, risk_tolerance, notes, last_contacted
+      retirement_goal_age, risk_tolerance, notes, last_contacted,
+      mbi_number, spouse_mbi_number
     } = req.body;
 
     const result = await pool.query(
@@ -74,11 +75,13 @@ router.post('/', async (req, res) => {
          life_carrier, life_carrier_other, life_plan_type, coverage_type, interested_coverage, life_plan_start_date,
          current_financial_products, interested_financial_products,
          financial_carrier, financial_carrier_other, financial_plan_start_date,
-         retirement_goal_age, risk_tolerance, notes, last_contacted)
+         retirement_goal_age, risk_tolerance, notes, last_contacted,
+         mbi_number, spouse_mbi_number)
        VALUES
         ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,
          $21,$22,$23,$24,$25,$26,$27,$28,$29,$30,$31,$32,$33,$34,$35,$36,$37,$38,$39,
-         $40,$41,$42,$43,$44,$45,$46,$47,$48,$49,$50,$51,$52,$53,$54,$55,$56,$57,$58)
+         $40,$41,$42,$43,$44,$45,$46,$47,$48,$49,$50,$51,$52,$53,$54,$55,$56,$57,$58,
+         $59,$60)
        RETURNING *`,
       [
         name || `${first_name || ''} ${last_name || ''}`.trim(),
@@ -96,7 +99,8 @@ router.post('/', async (req, res) => {
         life_carrier, life_carrier_other, life_plan_type, coverage_type, interested_coverage, life_plan_start_date || null,
         current_financial_products, interested_financial_products,
         financial_carrier, financial_carrier_other, financial_plan_start_date || null,
-        retirement_goal_age || null, risk_tolerance, notes, last_contacted || null
+        retirement_goal_age || null, risk_tolerance, notes, last_contacted || null,
+        mbi_number || null, spouse_mbi_number || null
       ]
     );
     res.json(result.rows[0]);
@@ -125,7 +129,8 @@ router.put('/:id', async (req, res) => {
       life_carrier, life_carrier_other, life_plan_type, coverage_type, interested_coverage, life_plan_start_date,
       current_financial_products, interested_financial_products,
       financial_carrier, financial_carrier_other, financial_plan_start_date,
-      retirement_goal_age, risk_tolerance, notes, last_contacted
+      retirement_goal_age, risk_tolerance, notes, last_contacted,
+      mbi_number, spouse_mbi_number
     } = req.body;
 
     const result = await pool.query(
@@ -144,8 +149,9 @@ router.put('/:id', async (req, res) => {
         life_carrier=$44, life_carrier_other=$45, life_plan_type=$46, coverage_type=$47, interested_coverage=$48, life_plan_start_date=$49,
         current_financial_products=$50, interested_financial_products=$51,
         financial_carrier=$52, financial_carrier_other=$53, financial_plan_start_date=$54,
-        retirement_goal_age=$55, risk_tolerance=$56, notes=$57, last_contacted=$58
-       WHERE id=$59 RETURNING *`,
+        retirement_goal_age=$55, risk_tolerance=$56, notes=$57, last_contacted=$58,
+        mbi_number=$59, spouse_mbi_number=$60
+       WHERE id=$61 RETURNING *`,
       [
         name || `${first_name || ''} ${last_name || ''}`.trim(),
         first_name, middle_name, last_name,
@@ -163,6 +169,7 @@ router.put('/:id', async (req, res) => {
         current_financial_products, interested_financial_products,
         financial_carrier, financial_carrier_other, financial_plan_start_date || null,
         retirement_goal_age || null, risk_tolerance, notes, last_contacted || null,
+        mbi_number || null, spouse_mbi_number || null,
         id
       ]
     );

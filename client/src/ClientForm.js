@@ -4,8 +4,10 @@ function ClientForm({ onSave, onClose }) {
   const [form, setForm] = useState({
     first_name: '', middle_name: '', last_name: '',
     email: '', phone: '', dob: '',
+    mbi_number: '',
     is_married: false,
     spouse_first_name: '', spouse_middle_name: '', spouse_last_name: '', spouse_dob: '',
+    spouse_mbi_number: '',
     address_street: '', address_suite: '', address_zip: '', address_city: '', address_state: '', address_county: '',
     mailing_different: false,
     mailing_address: '',
@@ -189,7 +191,7 @@ function ClientForm({ onSave, onClose }) {
                 <p style={sectionTitle}>Marital Status</p>
                 <div style={{ marginBottom: '12px' }}>
                   <label style={{ fontSize: '14px', marginRight: '20px' }}>
-                    <input type="radio" checked={!isMarried} onChange={() => setForm({ ...form, is_married: false, spouse_first_name: '', spouse_middle_name: '', spouse_last_name: '', spouse_dob: '' })} style={{ marginRight: '6px' }} />No
+                    <input type="radio" checked={!isMarried} onChange={() => setForm({ ...form, is_married: false, spouse_first_name: '', spouse_middle_name: '', spouse_last_name: '', spouse_dob: '', spouse_mbi_number: '' })} style={{ marginRight: '6px' }} />No
                   </label>
                   <label style={{ fontSize: '14px' }}>
                     <input type="radio" checked={isMarried} onChange={() => setForm({ ...form, is_married: true })} style={{ marginRight: '6px' }} />Yes
@@ -203,7 +205,10 @@ function ClientForm({ onSave, onClose }) {
                       <div style={{ flex: 0.6 }}><label style={label}>Middle</label><input style={input} name="spouse_middle_name" value={form.spouse_middle_name} onChange={handleChange} /></div>
                       <div style={col}><label style={label}>Spouse Last Name</label><input style={input} name="spouse_last_name" value={form.spouse_last_name} onChange={handleChange} /></div>
                     </div>
-                    <div><label style={label}>Spouse Date of Birth</label><input style={{ ...input, width: '200px' }} type="date" name="spouse_dob" value={form.spouse_dob} onChange={handleChange} /></div>
+                    <div style={row}>
+                      <div style={col}><label style={label}>Spouse Date of Birth</label><input style={input} type="date" name="spouse_dob" value={form.spouse_dob} onChange={handleChange} /></div>
+                      <div style={col}><label style={label}>Spouse MBI #</label><input style={input} name="spouse_mbi_number" value={form.spouse_mbi_number} onChange={handleChange} placeholder="e.g. 1EG4-TE5-MK72" /></div>
+                    </div>
                   </div>
                 )}
 
@@ -212,6 +217,10 @@ function ClientForm({ onSave, onClose }) {
                   <div style={col}><label style={label}>Date of Birth</label><input style={input} type="date" name="dob" value={form.dob} onChange={handleChange} /></div>
                   <div style={col}><label style={label}>Phone</label><input style={input} name="phone" value={form.phone} onChange={handleChange} placeholder="(000) 000-0000" /></div>
                   <div style={col}><label style={label}>Email</label><input style={input} type="email" name="email" value={form.email} onChange={handleChange} /></div>
+                </div>
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={label}>MBI # (Medicare Beneficiary ID)</label>
+                  <input style={{ ...input, maxWidth: '300px' }} name="mbi_number" value={form.mbi_number} onChange={handleChange} placeholder="e.g. 1EG4-TE5-MK72" />
                 </div>
 
                 <p style={sectionTitle}>Home Address</p>
