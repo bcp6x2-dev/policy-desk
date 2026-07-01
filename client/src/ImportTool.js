@@ -8,7 +8,13 @@ const [file, setFile] = useState(null);
 const [headers, setHeaders] = useState([]);
 const [preview, setPreview] = useState([]);
 const [totalRows, setTotalRows] = useState(0);
-const [mapping, setMapping] = useState({ name: '', email: '', phone: '', address: '', dob: '' });
+const [mapping, setMapping] = useState({
+  name: '', first_name: '', last_name: '', email: '', phone: '', dob: '',
+  address_street: '', address_city: '', address_state: '', address_zip: '', address_county: '',
+  health_carrier: '', health_plan_type: '',
+  financial_carrier: '', financial_plan_start_date: '',
+  client_types: '', assigned_to: '', status: '', mbi_number: ''
+});
 const [result, setResult] = useState(null);
 const [loading, setLoading] = useState(false);
 
@@ -32,7 +38,55 @@ th: { backgroundColor: BLACK, color: 'white', padding: '8px 12px', textAlign: 'l
 td: { padding: '8px 12px', borderBottom: '1px solid #eee' },
 stepIndicator: { display: 'flex', gap: '8px', marginBottom: '20px' },
 step: (active) => ({ padding: '6px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: active ? '700' : '400', backgroundColor: active ? RED : '#eee', color: active ? 'white' : '#555' }),
+sectionHeader: { fontSize: '12px', fontWeight: '700', color: RED, textTransform: 'uppercase', marginBottom: '8px', marginTop: '16px', paddingBottom: '4px', borderBottom: '1px solid #F5E8E8' },
 };
+
+const fieldGroups = [
+  {
+    title: 'Name & Contact',
+    fields: [
+      { key: 'name', label: 'Full Name *' },
+      { key: 'first_name', label: 'First Name' },
+      { key: 'last_name', label: 'Last Name' },
+      { key: 'email', label: 'Email' },
+      { key: 'phone', label: 'Phone' },
+      { key: 'dob', label: 'Date of Birth' },
+      { key: 'mbi_number', label: 'MBI # (Medicare Beneficiary ID)' },
+    ]
+  },
+  {
+    title: 'Address',
+    fields: [
+      { key: 'address_street', label: 'Street Address' },
+      { key: 'address_city', label: 'City' },
+      { key: 'address_state', label: 'State' },
+      { key: 'address_zip', label: 'Zip Code' },
+      { key: 'address_county', label: 'County' },
+    ]
+  },
+  {
+    title: 'Health Insurance',
+    fields: [
+      { key: 'health_carrier', label: 'Health Carrier' },
+      { key: 'health_plan_type', label: 'Health Plan Type' },
+    ]
+  },
+  {
+    title: 'Financial',
+    fields: [
+      { key: 'financial_carrier', label: 'Financial Carrier' },
+      { key: 'financial_plan_start_date', label: 'Financial Plan Start Date' },
+    ]
+  },
+  {
+    title: 'Client Info',
+    fields: [
+      { key: 'client_types', label: 'Client Type(s)' },
+      { key: 'assigned_to', label: 'Assigned Broker' },
+      { key: 'status', label: 'Status' },
+    ]
+  },
+];
 
 async function handleUpload() {
 if (!file) return;
@@ -53,7 +107,7 @@ setLoading(false);
 }
 
 async function handleImport() {
-if (!mapping.name) { alert('Please map the Name column'); return; }
+if (!mapping.name && !mapping.first_name) { alert('Please map either the Full Name or First Name column'); return; }
 setLoading(true);
 const formData = new FormData();
 formData.append('file', file);
@@ -100,19 +154,24 @@ style={{ marginBottom: '16px', display: 'block' }}
 
 {step === 2 && (
 <div>
-<p style={{ color: '#555', marginBottom: '16px' }}>We found <strong>{totalRows} rows</strong> and <strong>{headers.length} columns</strong>. Match your columns to the contact fields below.</p>
+<p style={{ color: '#555', marginBottom: '8px' }}>We found <strong>{totalRows} rows</strong> and <strong>{headers.length} columns</strong>. Match your columns to the contact fields below. All fields except Full Name are optional.</p>
 
-{['name', 'email', 'phone', 'address', 'dob'].map(field => (
-<div key={field}>
-<label style={s.label}>{field === 'dob' ? 'Date of Birth' : field.charAt(0).toUpperCase() + field.slice(1)} {field === 'name' ? '*' : ''}</label>
-<select style={s.select} value={mapping[field]} onChange={e => setMapping({ ...mapping, [field]: e.target.value })}>
+{fieldGroups.map(group => (
+<div key={group.title}>
+<p style={s.sectionHeader}>{group.title}</p>
+{group.fields.map(field => (
+<div key={field.key}>
+<label style={s.label}>{field.label}</label>
+<select style={s.select} value={mapping[field.key]} onChange={e => setMapping({ ...mapping, [field.key]: e.target.value })}>
 <option value="">-- Skip this field --</option>
 {headers.map(h => <option key={h} value={h}>{h}</option>)}
 </select>
 </div>
 ))}
+</div>
+))}
 
-<p style={{ fontSize: '13px', color: '#888', marginBottom: '12px' }}>Preview (first 5 rows):</p>
+<p style={{ fontSize: '13px', color: '#888', marginBottom: '8px', marginTop: '16px' }}>Preview (first 5 rows):</p>
 <div style={{ overflowX: 'auto' }}>
 <table style={s.table}>
 <thead>
