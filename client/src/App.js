@@ -23,6 +23,7 @@ const [currentPage, setCurrentPage] = useState(1);
 const [reminders, setReminders] = useState([]);
 const [unreadCount, setUnreadCount] = useState(0);
 const [showBell, setShowBell] = useState(false);
+const [selectedIds, setSelectedIds] = useState([]);
 const bellRef = useRef(null);
 const contactsPerPage = 25;
 
@@ -106,6 +107,32 @@ await fetch(`https://policy-desk-production.up.railway.app/api/reminders/mark-al
 fetchReminders(user);
 }
 
+async function handleBulkDelete() {
+if (selectedIds.length === 0) return;
+if (!window.confirm(`Delete ${selectedIds.length} selected contact(s)? This cannot be undone.`)) return;
+const t = localStorage.getItem('token');
+await Promise.all(selectedIds.map(id =>
+fetch(`https://policy-desk-production.up.railway.app/api/contacts/${id}`, {
+method: 'DELETE',
+headers: { Authorization: `Bearer ${t}` }
+})
+));
+setSelectedIds([]);
+fetchContacts();
+}
+
+function toggleSelectAll() {
+if (selectedIds.length === paginated.length) {
+setSelectedIds([]);
+} else {
+setSelectedIds(paginated.map(c => c.id));
+}
+}
+
+function toggleSelect(id) {
+setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+}
+
 const filtered = contacts.filter(c => {
 const matchesSearch =
 c.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -154,6 +181,7 @@ if (!user) return <Login onLogin={handleLogin} />;
 
 const dueReminders = reminders.filter(r => new Date(r.reminder_date) <= new Date());
 const upcomingReminders = reminders.filter(r => new Date(r.reminder_date) > new Date());
+const allPageSelected = paginated.length > 0 && paginated.every(c => selectedIds.includes(c.id));
 
 return (
 <div style={styles.app}>
@@ -162,40 +190,24 @@ return (
   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
     <span style={{ color: CREAM, fontSize: '14px' }}>Welcome, {user.name}</span>
 
-    {/* BELL NOTIFICATION */}
     <div ref={bellRef} style={{ position: 'relative' }}>
-      <button
-        onClick={() => setShowBell(!showBell)}
-        style={{ backgroundColor: 'transparent', border: 'none', cursor: 'pointer', position: 'relative', padding: '4px' }}
-      >
+      <button onClick={() => setShowBell(!showBell)} style={{ backgroundColor: 'transparent', border: 'none', cursor: 'pointer', position: 'relative', padding: '4px' }}>
         <span style={{ fontSize: '20px' }}>🔔</span>
         {unreadCount > 0 && (
-          <span style={{
-            position: 'absolute', top: '-2px', right: '-2px',
-            backgroundColor: RED, color: 'white', borderRadius: '50%',
-            fontSize: '10px', fontWeight: 'bold', minWidth: '16px', height: '16px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 2px'
-          }}>
+          <span style={{ position: 'absolute', top: '-2px', right: '-2px', backgroundColor: RED, color: 'white', borderRadius: '50%', fontSize: '10px', fontWeight: 'bold', minWidth: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 2px' }}>
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
       {showBell && (
-        <div style={{
-          position: 'absolute', top: '36px', right: 0, backgroundColor: 'white',
-          borderRadius: '10px', boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
-          width: '360px', zIndex: 2000, overflow: 'hidden'
-        }}>
+        <div style={{ position: 'absolute', top: '36px', right: 0, backgroundColor: 'white', borderRadius: '10px', boxShadow: '0 4px 20px rgba(0,0,0,0.2)', width: '360px', zIndex: 2000, overflow: 'hidden' }}>
           <div style={{ backgroundColor: BLACK, padding: '12px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `3px solid ${RED}` }}>
             <span style={{ color: 'white', fontWeight: '700', fontSize: '14px' }}>🔔 Reminders</span>
             {unreadCount > 0 && (
-              <button onClick={markAllRead} style={{ backgroundColor: 'transparent', border: `1px solid ${CREAM}`, color: CREAM, padding: '3px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>
-                Mark all read
-              </button>
+              <button onClick={markAllRead} style={{ backgroundColor: 'transparent', border: `1px solid ${CREAM}`, color: CREAM, padding: '3px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Mark all read</button>
             )}
           </div>
-
           <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
             {reminders.length === 0 ? (
               <p style={{ padding: '20px', textAlign: 'center', color: '#888', fontSize: '14px' }}>No reminders yet.</p>
@@ -203,9 +215,7 @@ return (
               <>
                 {dueReminders.length > 0 && (
                   <div>
-                    <div style={{ padding: '8px 16px', backgroundColor: '#FDF5F5', fontSize: '11px', fontWeight: '700', color: RED, textTransform: 'uppercase' }}>
-                      Due Now ({dueReminders.length})
-                    </div>
+                    <div style={{ padding: '8px 16px', backgroundColor: '#FDF5F5', fontSize: '11px', fontWeight: '700', color: RED, textTransform: 'uppercase' }}>Due Now ({dueReminders.length})</div>
                     {dueReminders.map(r => (
                       <div key={r.id} style={{ padding: '12px 16px', borderBottom: '1px solid #F0F0F0', backgroundColor: r.is_read ? 'white' : '#FFF8F8', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div style={{ flex: 1 }}>
@@ -214,20 +224,15 @@ return (
                           <div style={{ fontSize: '11px', color: RED, marginTop: '4px', fontWeight: '600' }}>Due: {new Date(r.reminder_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                         </div>
                         {!r.is_read && (
-                          <button onClick={() => markAsRead(r.id)} style={{ backgroundColor: 'transparent', border: '1px solid #ddd', color: '#666', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', marginLeft: '8px', whiteSpace: 'nowrap' }}>
-                            Dismiss
-                          </button>
+                          <button onClick={() => markAsRead(r.id)} style={{ backgroundColor: 'transparent', border: '1px solid #ddd', color: '#666', padding: '3px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', marginLeft: '8px', whiteSpace: 'nowrap' }}>Dismiss</button>
                         )}
                       </div>
                     ))}
                   </div>
                 )}
-
                 {upcomingReminders.length > 0 && (
                   <div>
-                    <div style={{ padding: '8px 16px', backgroundColor: '#F8F9FA', fontSize: '11px', fontWeight: '700', color: '#666', textTransform: 'uppercase' }}>
-                      Upcoming ({upcomingReminders.length})
-                    </div>
+                    <div style={{ padding: '8px 16px', backgroundColor: '#F8F9FA', fontSize: '11px', fontWeight: '700', color: '#666', textTransform: 'uppercase' }}>Upcoming ({upcomingReminders.length})</div>
                     {upcomingReminders.map(r => (
                       <div key={r.id} style={{ padding: '12px 16px', borderBottom: '1px solid #F0F0F0', backgroundColor: 'white' }}>
                         <div style={{ fontWeight: '600', fontSize: '13px', color: BLACK }}>{r.client_name || `${r.first_name} ${r.last_name}`}</div>
@@ -248,9 +253,7 @@ return (
     {user.role === 'admin' && (
       <button onClick={() => setShowUsers(true)} style={styles.usersBtn}>👥 Manage Users</button>
     )}
-    <button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: `1px solid ${CREAM}`, color: CREAM, padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>
-      Sign Out
-    </button>
+    <button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: `1px solid ${CREAM}`, color: CREAM, padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>Sign Out</button>
   </div>
 </div>
 
@@ -291,6 +294,16 @@ return (
 ))}
 </div>
 
+{selectedIds.length > 0 && (
+<div style={{ backgroundColor: '#FDF5F5', border: '1px solid #E8C8C8', borderRadius: '8px', padding: '10px 16px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+<span style={{ fontSize: '14px', color: BLACK, fontWeight: '600' }}>{selectedIds.length} contact{selectedIds.length !== 1 ? 's' : ''} selected</span>
+<div style={{ display: 'flex', gap: '8px' }}>
+<button onClick={() => setSelectedIds([])} style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', fontSize: '13px', backgroundColor: 'white' }}>Clear</button>
+<button onClick={handleBulkDelete} style={{ padding: '6px 14px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px', backgroundColor: '#721C24', color: 'white', fontWeight: '600' }}>🗑 Delete Selected</button>
+</div>
+</div>
+)}
+
 <div style={styles.card}>
 {loading ? (
 <p style={{ padding: '20px' }}>Loading contacts...</p>
@@ -298,6 +311,9 @@ return (
 <table style={styles.table}>
 <thead>
 <tr>
+<th style={{ ...styles.th, width: '40px' }}>
+<input type="checkbox" checked={allPageSelected} onChange={toggleSelectAll} style={{ cursor: 'pointer' }} />
+</th>
 <th style={styles.th}>Name</th>
 <th style={styles.th}>Email</th>
 <th style={styles.th}>Phone</th>
@@ -307,17 +323,21 @@ return (
 </thead>
 <tbody>
 {paginated.length === 0 ? (
-<tr><td colSpan="5" style={{ ...styles.td, textAlign: 'center', color: '#888' }}>No contacts found</td></tr>
+<tr><td colSpan="6" style={{ ...styles.td, textAlign: 'center', color: '#888' }}>No contacts found</td></tr>
 ) : (
 paginated.map(contact => (
-<tr key={contact.id} onClick={() => setSelectedContact(contact)} style={{ cursor: 'pointer' }}
-onMouseEnter={e => e.currentTarget.style.backgroundColor = '#FDF5F5'}
-onMouseLeave={e => e.currentTarget.style.backgroundColor = 'white'}>
-<td style={{ ...styles.td, fontWeight: '600' }}>{contact.name}</td>
-<td style={styles.td}>{contact.email}</td>
-<td style={styles.td}>{contact.phone}</td>
-<td style={styles.td}>{contact.client_types || contact.client_type || '—'}</td>
-<td style={styles.td}><span style={styles.badge(contact.status)}>{contact.status}</span></td>
+<tr key={contact.id}
+style={{ cursor: 'pointer', backgroundColor: selectedIds.includes(contact.id) ? '#FDF5F5' : 'white' }}
+onMouseEnter={e => { if (!selectedIds.includes(contact.id)) e.currentTarget.style.backgroundColor = '#F9F9F9'; }}
+onMouseLeave={e => { e.currentTarget.style.backgroundColor = selectedIds.includes(contact.id) ? '#FDF5F5' : 'white'; }}>
+<td style={{ ...styles.td, width: '40px' }} onClick={e => { e.stopPropagation(); toggleSelect(contact.id); }}>
+<input type="checkbox" checked={selectedIds.includes(contact.id)} onChange={() => toggleSelect(contact.id)} style={{ cursor: 'pointer' }} />
+</td>
+<td style={{ ...styles.td, fontWeight: '600' }} onClick={() => setSelectedContact(contact)}>{contact.name}</td>
+<td style={styles.td} onClick={() => setSelectedContact(contact)}>{contact.email}</td>
+<td style={styles.td} onClick={() => setSelectedContact(contact)}>{contact.phone}</td>
+<td style={styles.td} onClick={() => setSelectedContact(contact)}>{contact.client_types || contact.client_type || '—'}</td>
+<td style={styles.td} onClick={() => setSelectedContact(contact)}><span style={styles.badge(contact.status)}>{contact.status}</span></td>
 </tr>
 ))
 )}
@@ -332,14 +352,10 @@ Showing {filtered.length === 0 ? 0 : ((currentPage - 1) * contactsPerPage) + 1} 
 </span>
 <div style={{ display: 'flex', gap: '8px' }}>
 <button onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}
-style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #ccc', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', backgroundColor: 'white' }}>
-← Previous
-</button>
+style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #ccc', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', backgroundColor: 'white' }}>← Previous</button>
 <span style={{ padding: '6px 14px', fontSize: '14px', color: '#555' }}>Page {currentPage} of {totalPages}</span>
 <button onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}
-style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #ccc', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', backgroundColor: 'white' }}>
-Next →
-</button>
+style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #ccc', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', backgroundColor: 'white' }}>Next →</button>
 </div>
 </div>
 </div>
