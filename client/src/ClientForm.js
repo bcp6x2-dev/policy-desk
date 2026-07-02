@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 function ClientForm({ onSave, onClose }) {
   const [form, setForm] = useState({
@@ -13,7 +13,7 @@ function ClientForm({ onSave, onClose }) {
     mailing_address: '',
     client_types: [],
     status: 'lead', source: 'manual', smoker: false, household_size: '',
-    assigned_to: 'Terrell Lane',
+    assigned_to: '',
     health_carrier: '', health_plan_type: '', health_plan_type_other: '', plan_start_date: '',
     primary_hospital_name: '', primary_hospital_location: '',
     physicians: [],
@@ -26,6 +26,7 @@ function ClientForm({ onSave, onClose }) {
     notes: '', last_contacted: ''
   });
 
+  const [brokers, setBrokers] = useState([]);
   const [activeTab, setActiveTab] = useState('demographics');
   const [error, setError] = useState('');
   const [savedContactId, setSavedContactId] = useState(null);
@@ -36,6 +37,25 @@ function ClientForm({ onSave, onClose }) {
 
   const RED = '#851D21';
   const BLACK = '#303030';
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userRaw = localStorage.getItem('user');
+    const loggedInUser = userRaw ? JSON.parse(userRaw) : null;
+    fetch('https://policy-desk-production.up.railway.app/api/users/brokers', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setBrokers(data);
+          if (loggedInUser) {
+            setForm(f => ({ ...f, assigned_to: loggedInUser.name }));
+          }
+        }
+      })
+      .catch(err => console.error(err));
+  }, []);
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
@@ -263,7 +283,13 @@ function ClientForm({ onSave, onClose }) {
                 </div>
                 <div style={row}>
                   <div style={col}><label style={label}>Household Size</label><input style={input} type="number" name="household_size" value={form.household_size} onChange={handleChange} /></div>
-                  <div style={col}><label style={label}>Assigned Broker</label><select style={select} name="assigned_to" value={form.assigned_to} onChange={handleChange}><option value="Terrell Lane">Terrell Lane</option></select></div>
+                  <div style={col}>
+                    <label style={label}>Assigned Broker</label>
+                    <select style={select} name="assigned_to" value={form.assigned_to} onChange={handleChange}>
+                      <option value="">-- Select Broker --</option>
+                      {brokers.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
+                    </select>
+                  </div>
                 </div>
               </div>
             )}

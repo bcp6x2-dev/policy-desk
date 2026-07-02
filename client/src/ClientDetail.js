@@ -9,10 +9,17 @@ function ClientDetail({ contact, onClose, onSave }) {
   const [showNoteModal, setShowNoteModal] = useState(false);
   const [noteBody, setNoteBody] = useState('');
   const [noteSaving, setNoteSaving] = useState(false);
+  const [brokers, setBrokers] = useState([]);
 
   const RED = '#851D21';
   const BLACK = '#303030';
   const CREAM = '#E6D6C6';
+
+  const userRaw = localStorage.getItem('user');
+  const loggedInUser = userRaw ? JSON.parse(userRaw) : null;
+  const isAdmin = loggedInUser?.role === 'admin';
+  const isAssigned = form.assigned_to === loggedInUser?.name;
+  const isViewOnly = !isAdmin && !isAssigned;
 
   const isMarried = form.is_married === true || form.is_married === 'true';
 
@@ -23,9 +30,17 @@ function ClientDetail({ contact, onClose, onSave }) {
         .then(data => setNotesList(Array.isArray(data) ? data : []))
         .catch(err => console.error(err));
     }
+    const token = localStorage.getItem('token');
+    fetch('https://policy-desk-production.up.railway.app/api/users/brokers', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => { if (Array.isArray(data)) setBrokers(data); })
+      .catch(err => console.error(err));
   }, [contact.id]);
 
   function handleChange(e) {
+    if (isViewOnly) return;
     const { name, value, type, checked } = e.target;
     if (name === 'client_types') {
       const current = form.client_types ? form.client_types.split(',').map(s => s.trim()).filter(Boolean) : [];
@@ -52,9 +67,7 @@ function ClientDetail({ contact, onClose, onSave }) {
     setNoteSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const userRaw = localStorage.getItem('user');
-      const user = userRaw ? JSON.parse(userRaw) : null;
-      const broker_name = user ? user.name : 'Unknown';
+      const broker_name = loggedInUser ? loggedInUser.name : 'Unknown';
       const res = await fetch(`https://policy-desk-production.up.railway.app/api/notes/${contact.id}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -73,6 +86,7 @@ function ClientDetail({ contact, onClose, onSave }) {
   }
 
   async function handleSave() {
+    if (isViewOnly) return;
     setSaving(true);
     try {
       const token = localStorage.getItem('token');
@@ -93,14 +107,12 @@ function ClientDetail({ contact, onClose, onSave }) {
         : null;
 
       if (planDate) {
-        const userRaw = localStorage.getItem('user');
-        const user = userRaw ? JSON.parse(userRaw) : null;
         await fetch('https://policy-desk-production.up.railway.app/api/reminders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({
             contact_id: form.id,
-            broker_name: user ? user.name : form.assigned_to,
+            broker_name: loggedInUser ? loggedInUser.name : form.assigned_to,
             plan_start_date: planDate,
           }),
         });
@@ -119,8 +131,23 @@ function ClientDetail({ contact, onClose, onSave }) {
   const financialCarriers = ['American Equity Inv.','American General','Equitrust','F&G','Mass Mutual','Nationwide','Silac','Other'];
   const financialProducts = ['Annuity','Indexed Universal Life (IUL)','Whole Life','Term Life','Mutual Funds','401(k) / IRA','CD / Savings','Other'];
 
-  const input = { width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' };
-  const select = { width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box' };
+  const inputStyle = (disabled) => ({
+    width: '100%', padding: '9px 12px', borderRadius: '6px',
+    border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box',
+    backgroundColor: disabled ? '#F5F5F5' : 'white',
+    color: disabled ? '#888' : '#333',
+    cursor: disabled ? 'not-allowed' : 'text'
+  });
+  const selectStyle = (disabled) => ({
+    width: '100%', padding: '9px 12px', borderRadius: '6px',
+    border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box',
+    backgroundColor: disabled ? '#F5F5F5' : 'white',
+    color: disabled ? '#888' : '#333',
+    cursor: disabled ? 'not-allowed' : 'pointer'
+  });
+
+  const input = inputStyle(isViewOnly);
+  const select = selectStyle(isViewOnly);
   const label = { display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#555', textTransform: 'uppercase' };
   const row = { display: 'flex', gap: '12px', marginBottom: '12px' };
   const col = { flex: 1 };
@@ -137,7 +164,9 @@ function ClientDetail({ contact, onClose, onSave }) {
         <div style={{ backgroundColor: BLACK, padding: '12px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0, borderBottom: '4px solid ' + RED }}>
           <div>
             <h2 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 'bold' }}>{clientName}</h2>
-            <p style={{ color: CREAM, fontSize: '13px', margin: '2px 0 0' }}>{form.status}</p>
+            <p style={{ color: CREAM, fontSize: '13px', margin: '2px 0 0' }}>
+              {form.status}{isViewOnly && <span style={{ marginLeft: '10px', backgroundColor: '#856404', color: 'white', fontSize: '11px', padding: '2px 8px', borderRadius: '10px', fontWeight: '600' }}>👁 View Only</span>}
+            </p>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'white', fontSize: '20px', cursor: 'pointer' }}>✕</button>
         </div>
@@ -150,93 +179,105 @@ function ClientDetail({ contact, onClose, onSave }) {
           ))}
         </div>
 
+        {isViewOnly && (
+          <div style={{ backgroundColor: '#FFF3CD', padding: '10px 24px', fontSize: '13px', color: '#856404', borderBottom: '1px solid #FFEEBA' }}>
+            👁 You have view-only access to this client. Only assigned brokers can edit.
+          </div>
+        )}
+
         <div style={{ overflowY: 'auto', flex: 1, padding: '24px' }}>
 
           {activeTab === 'demographics' && (
             <div>
               <p style={sectionTitle}>Client Name</p>
               <div style={row}>
-                <div style={col}><label style={label}>First Name</label><input style={input} name="first_name" value={form.first_name || ''} onChange={handleChange} /></div>
-                <div style={{ flex: 0.6 }}><label style={label}>Middle Name</label><input style={input} name="middle_name" value={form.middle_name || ''} onChange={handleChange} /></div>
-                <div style={col}><label style={label}>Last Name</label><input style={input} name="last_name" value={form.last_name || ''} onChange={handleChange} /></div>
+                <div style={col}><label style={label}>First Name</label><input style={input} name="first_name" value={form.first_name || ''} onChange={handleChange} disabled={isViewOnly} /></div>
+                <div style={{ flex: 0.6 }}><label style={label}>Middle Name</label><input style={input} name="middle_name" value={form.middle_name || ''} onChange={handleChange} disabled={isViewOnly} /></div>
+                <div style={col}><label style={label}>Last Name</label><input style={input} name="last_name" value={form.last_name || ''} onChange={handleChange} disabled={isViewOnly} /></div>
               </div>
 
               <p style={sectionTitle}>Marital Status</p>
               <div style={{ marginBottom: '12px' }}>
                 <label style={{ fontSize: '14px', marginRight: '20px' }}>
-                  <input type="radio" checked={!isMarried} onChange={() => setForm({ ...form, is_married: false })} style={{ marginRight: '6px' }} />No
+                  <input type="radio" checked={!isMarried} onChange={() => !isViewOnly && setForm({ ...form, is_married: false })} style={{ marginRight: '6px' }} disabled={isViewOnly} />No
                 </label>
                 <label style={{ fontSize: '14px' }}>
-                  <input type="radio" checked={isMarried} onChange={() => setForm({ ...form, is_married: true })} style={{ marginRight: '6px' }} />Yes
+                  <input type="radio" checked={isMarried} onChange={() => !isViewOnly && setForm({ ...form, is_married: true })} style={{ marginRight: '6px' }} disabled={isViewOnly} />Yes
                 </label>
               </div>
               {isMarried && (
                 <div style={conditionalBox}>
                   <p style={{ ...sectionTitle, marginBottom: '12px' }}>Spouse Information</p>
                   <div style={row}>
-                    <div style={col}><label style={label}>Spouse First Name</label><input style={input} name="spouse_first_name" value={form.spouse_first_name || ''} onChange={handleChange} /></div>
-                    <div style={{ flex: 0.6 }}><label style={label}>Middle</label><input style={input} name="spouse_middle_name" value={form.spouse_middle_name || ''} onChange={handleChange} /></div>
-                    <div style={col}><label style={label}>Spouse Last Name</label><input style={input} name="spouse_last_name" value={form.spouse_last_name || ''} onChange={handleChange} /></div>
+                    <div style={col}><label style={label}>Spouse First Name</label><input style={input} name="spouse_first_name" value={form.spouse_first_name || ''} onChange={handleChange} disabled={isViewOnly} /></div>
+                    <div style={{ flex: 0.6 }}><label style={label}>Middle</label><input style={input} name="spouse_middle_name" value={form.spouse_middle_name || ''} onChange={handleChange} disabled={isViewOnly} /></div>
+                    <div style={col}><label style={label}>Spouse Last Name</label><input style={input} name="spouse_last_name" value={form.spouse_last_name || ''} onChange={handleChange} disabled={isViewOnly} /></div>
                   </div>
                   <div style={row}>
-                    <div style={col}><label style={label}>Spouse Date of Birth</label><input style={input} type="date" name="spouse_dob" value={form.spouse_dob ? form.spouse_dob.split('T')[0] : ''} onChange={handleChange} /></div>
-                    <div style={col}><label style={label}>Spouse MBI #</label><input style={input} name="spouse_mbi_number" value={form.spouse_mbi_number || ''} onChange={handleChange} placeholder="e.g. 1EG4-TE5-MK72" /></div>
+                    <div style={col}><label style={label}>Spouse Date of Birth</label><input style={input} type="date" name="spouse_dob" value={form.spouse_dob ? form.spouse_dob.split('T')[0] : ''} onChange={handleChange} disabled={isViewOnly} /></div>
+                    <div style={col}><label style={label}>Spouse MBI #</label><input style={input} name="spouse_mbi_number" value={form.spouse_mbi_number || ''} onChange={handleChange} disabled={isViewOnly} placeholder="e.g. 1EG4-TE5-MK72" /></div>
                   </div>
                 </div>
               )}
 
               <p style={sectionTitle}>Personal Details</p>
               <div style={row}>
-                <div style={col}><label style={label}>Date of Birth</label><input style={input} type="date" name="dob" value={form.dob ? form.dob.split('T')[0] : ''} onChange={handleChange} /></div>
-                <div style={col}><label style={label}>Phone</label><input style={input} name="phone" value={form.phone || ''} onChange={handleChange} /></div>
-                <div style={col}><label style={label}>Email</label><input style={input} name="email" value={form.email || ''} onChange={handleChange} /></div>
+                <div style={col}><label style={label}>Date of Birth</label><input style={input} type="date" name="dob" value={form.dob ? form.dob.split('T')[0] : ''} onChange={handleChange} disabled={isViewOnly} /></div>
+                <div style={col}><label style={label}>Phone</label><input style={input} name="phone" value={form.phone || ''} onChange={handleChange} disabled={isViewOnly} /></div>
+                <div style={col}><label style={label}>Email</label><input style={input} name="email" value={form.email || ''} onChange={handleChange} disabled={isViewOnly} /></div>
               </div>
               <div style={{ marginBottom: '12px' }}>
                 <label style={label}>MBI # (Medicare Beneficiary ID)</label>
-                <input style={{ ...input, maxWidth: '300px' }} name="mbi_number" value={form.mbi_number || ''} onChange={handleChange} placeholder="e.g. 1EG4-TE5-MK72" />
+                <input style={{ ...input, maxWidth: '300px' }} name="mbi_number" value={form.mbi_number || ''} onChange={handleChange} disabled={isViewOnly} placeholder="e.g. 1EG4-TE5-MK72" />
               </div>
 
               <p style={sectionTitle}>Home Address</p>
-              <div style={{ marginBottom: '12px' }}><label style={label}>Street Address</label><input style={input} name="address_street" value={form.address_street || ''} onChange={handleChange} /></div>
+              <div style={{ marginBottom: '12px' }}><label style={label}>Street Address</label><input style={input} name="address_street" value={form.address_street || ''} onChange={handleChange} disabled={isViewOnly} /></div>
               <div style={row}>
-                <div style={{ flex: 0.5 }}><label style={label}>Suite / Apt</label><input style={input} name="address_suite" value={form.address_suite || ''} onChange={handleChange} /></div>
-                <div style={{ flex: 0.5 }}><label style={label}>Zip Code</label><input style={input} name="address_zip" value={form.address_zip || ''} onChange={handleChange} /></div>
-                <div style={col}><label style={label}>City</label><input style={input} name="address_city" value={form.address_city || ''} onChange={handleChange} /></div>
+                <div style={{ flex: 0.5 }}><label style={label}>Suite / Apt</label><input style={input} name="address_suite" value={form.address_suite || ''} onChange={handleChange} disabled={isViewOnly} /></div>
+                <div style={{ flex: 0.5 }}><label style={label}>Zip Code</label><input style={input} name="address_zip" value={form.address_zip || ''} onChange={handleChange} disabled={isViewOnly} /></div>
+                <div style={col}><label style={label}>City</label><input style={input} name="address_city" value={form.address_city || ''} onChange={handleChange} disabled={isViewOnly} /></div>
               </div>
               <div style={row}>
-                <div style={col}><label style={label}>State</label><input style={input} name="address_state" value={form.address_state || ''} onChange={handleChange} /></div>
-                <div style={col}><label style={label}>County</label><input style={input} name="address_county" value={form.address_county || ''} onChange={handleChange} /></div>
+                <div style={col}><label style={label}>State</label><input style={input} name="address_state" value={form.address_state || ''} onChange={handleChange} disabled={isViewOnly} /></div>
+                <div style={col}><label style={label}>County</label><input style={input} name="address_county" value={form.address_county || ''} onChange={handleChange} disabled={isViewOnly} /></div>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                <input type="checkbox" name="mailing_different" checked={form.mailing_different || false} onChange={handleChange} id="mailing_different_edit" />
-                <label htmlFor="mailing_different_edit" style={{ fontSize: '14px', cursor: 'pointer' }}>Mailing address is different than home address</label>
+                <input type="checkbox" name="mailing_different" checked={form.mailing_different || false} onChange={handleChange} id="mailing_different_edit" disabled={isViewOnly} />
+                <label htmlFor="mailing_different_edit" style={{ fontSize: '14px', cursor: isViewOnly ? 'not-allowed' : 'pointer' }}>Mailing address is different than home address</label>
               </div>
               {form.mailing_different && (
                 <div style={conditionalBox}>
                   <p style={{ ...sectionTitle, marginBottom: '12px' }}>Mailing Address</p>
-                  <div style={{ marginBottom: '12px' }}><label style={label}>Street Address</label><input style={input} name="mailing_address" value={form.mailing_address || ''} onChange={handleChange} /></div>
+                  <div style={{ marginBottom: '12px' }}><label style={label}>Street Address</label><input style={input} name="mailing_address" value={form.mailing_address || ''} onChange={handleChange} disabled={isViewOnly} /></div>
                 </div>
               )}
 
               <p style={sectionTitle}>Client Type</p>
               <div style={{ display: 'flex', gap: '24px', marginBottom: '12px' }}>
                 {['Health Insurance', 'Life Insurance', 'Finance'].map(type => (
-                  <label key={type} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
-                    <input type="checkbox" name="client_types" value={type} checked={getClientTypes().includes(type)} onChange={handleChange} />{type}
+                  <label key={type} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: isViewOnly ? 'not-allowed' : 'pointer' }}>
+                    <input type="checkbox" name="client_types" value={type} checked={getClientTypes().includes(type)} onChange={handleChange} disabled={isViewOnly} />{type}
                   </label>
                 ))}
               </div>
 
               <p style={sectionTitle}>Additional Info</p>
               <div style={row}>
-                <div style={col}><label style={label}>Source</label><select style={select} name="source" value={form.source || 'manual'} onChange={handleChange}><option value="manual">Manual Entry</option><option value="referral">Referral</option><option value="web_form">Web Form</option><option value="imported">Imported</option></select></div>
-                <div style={col}><label style={label}>Smoker?</label><select style={select} name="smoker" value={form.smoker} onChange={handleChange}><option value={false}>No</option><option value={true}>Yes</option></select></div>
-                <div style={col}><label style={label}>Status</label><select style={select} name="status" value={form.status || 'lead'} onChange={handleChange}><option value="lead">Lead</option><option value="prospect">Prospect</option><option value="active">Active Client</option><option value="inactive">Inactive</option></select></div>
+                <div style={col}><label style={label}>Source</label><select style={select} name="source" value={form.source || 'manual'} onChange={handleChange} disabled={isViewOnly}><option value="manual">Manual Entry</option><option value="referral">Referral</option><option value="web_form">Web Form</option><option value="imported">Imported</option></select></div>
+                <div style={col}><label style={label}>Smoker?</label><select style={select} name="smoker" value={form.smoker} onChange={handleChange} disabled={isViewOnly}><option value={false}>No</option><option value={true}>Yes</option></select></div>
+                <div style={col}><label style={label}>Status</label><select style={select} name="status" value={form.status || 'lead'} onChange={handleChange} disabled={isViewOnly}><option value="lead">Lead</option><option value="prospect">Prospect</option><option value="active">Active Client</option><option value="inactive">Inactive</option></select></div>
               </div>
               <div style={row}>
-                <div style={col}><label style={label}>Household Size</label><input style={input} type="number" name="household_size" value={form.household_size || ''} onChange={handleChange} /></div>
-                <div style={col}><label style={label}>Assigned Broker</label><select style={select} name="assigned_to" value={form.assigned_to || 'Terrell Lane'} onChange={handleChange}><option value="Terrell Lane">Terrell Lane</option></select></div>
+                <div style={col}><label style={label}>Household Size</label><input style={input} type="number" name="household_size" value={form.household_size || ''} onChange={handleChange} disabled={isViewOnly} /></div>
+                <div style={col}>
+                  <label style={label}>Assigned Broker</label>
+                  <select style={select} name="assigned_to" value={form.assigned_to || ''} onChange={handleChange} disabled={isViewOnly}>
+                    <option value="">-- Select Broker --</option>
+                    {brokers.map(b => <option key={b.id} value={b.name}>{b.name}</option>)}
+                  </select>
+                </div>
               </div>
             </div>
           )}
@@ -245,45 +286,45 @@ function ClientDetail({ contact, onClose, onSave }) {
             <div>
               <p style={sectionTitle}>Client — Health Insurance</p>
               <div style={row}>
-                <div style={col}><label style={label}>Current Carrier</label><select style={select} name="health_carrier" value={form.health_carrier || ''} onChange={handleChange}><option value="">Select...</option>{healthCarriers.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                <div style={col}><label style={label}>Plan Type</label><select style={select} name="health_plan_type" value={form.health_plan_type || ''} onChange={handleChange}><option value="">Select...</option>{healthPlanTypes.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+                <div style={col}><label style={label}>Current Carrier</label><select style={select} name="health_carrier" value={form.health_carrier || ''} onChange={handleChange} disabled={isViewOnly}><option value="">Select...</option>{healthCarriers.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                <div style={col}><label style={label}>Plan Type</label><select style={select} name="health_plan_type" value={form.health_plan_type || ''} onChange={handleChange} disabled={isViewOnly}><option value="">Select...</option>{healthPlanTypes.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
               </div>
-              {form.health_plan_type === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Plan Type</label><input style={input} name="health_plan_type_other" value={form.health_plan_type_other || ''} onChange={handleChange} /></div>)}
-              <div style={{ marginBottom: '12px' }}><label style={label}>Policy Plan Start Date</label><input style={{ ...input, width: '200px' }} type="date" name="plan_start_date" value={form.plan_start_date ? form.plan_start_date.split('T')[0] : ''} onChange={handleChange} /></div>
+              {form.health_plan_type === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Plan Type</label><input style={input} name="health_plan_type_other" value={form.health_plan_type_other || ''} onChange={handleChange} disabled={isViewOnly} /></div>)}
+              <div style={{ marginBottom: '12px' }}><label style={label}>Policy Plan Start Date</label><input style={{ ...input, width: '200px' }} type="date" name="plan_start_date" value={form.plan_start_date ? form.plan_start_date.split('T')[0] : ''} onChange={handleChange} disabled={isViewOnly} /></div>
 
               <p style={sectionTitle}>Primary Hospital</p>
               <div style={row}>
-                <div style={col}><label style={label}>Hospital Network Name</label><input style={input} name="primary_hospital_name" value={form.primary_hospital_name || ''} onChange={handleChange} /></div>
-                <div style={col}><label style={label}>Location (City, State)</label><input style={input} name="primary_hospital_location" value={form.primary_hospital_location || ''} onChange={handleChange} /></div>
+                <div style={col}><label style={label}>Hospital Network Name</label><input style={input} name="primary_hospital_name" value={form.primary_hospital_name || ''} onChange={handleChange} disabled={isViewOnly} /></div>
+                <div style={col}><label style={label}>Location (City, State)</label><input style={input} name="primary_hospital_location" value={form.primary_hospital_location || ''} onChange={handleChange} disabled={isViewOnly} /></div>
               </div>
 
               <p style={sectionTitle}>Physicians</p>
               <div style={{ marginBottom: '12px' }}>
                 <label style={label}>Physician Name(s)</label>
-                <input style={input} name="physician_name" value={form.physician_name || ''} onChange={handleChange} placeholder="e.g. Dr. Smith; Dr. Jones" />
+                <input style={input} name="physician_name" value={form.physician_name || ''} onChange={handleChange} disabled={isViewOnly} placeholder="e.g. Dr. Smith; Dr. Jones" />
               </div>
               <div style={{ marginBottom: '12px' }}>
                 <label style={label}>Physician Specialty(ies)</label>
-                <input style={input} name="physician_specialty" value={form.physician_specialty || ''} onChange={handleChange} placeholder="e.g. Cardiology; Family Medicine" />
+                <input style={input} name="physician_specialty" value={form.physician_specialty || ''} onChange={handleChange} disabled={isViewOnly} placeholder="e.g. Cardiology; Family Medicine" />
               </div>
 
               <p style={sectionTitle}>Preferred Pharmacy</p>
-              <div style={{ marginBottom: '12px' }}><label style={label}>Pharmacy Name</label><select style={select} name="pharmacy_name" value={form.pharmacy_name || ''} onChange={handleChange}><option value="">Select...</option>{pharmacies.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
-              {form.pharmacy_name === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Pharmacy Name</label><input style={input} name="pharmacy_other" value={form.pharmacy_other || ''} onChange={handleChange} /></div>)}
+              <div style={{ marginBottom: '12px' }}><label style={label}>Pharmacy Name</label><select style={select} name="pharmacy_name" value={form.pharmacy_name || ''} onChange={handleChange} disabled={isViewOnly}><option value="">Select...</option>{pharmacies.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+              {form.pharmacy_name === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Pharmacy Name</label><input style={input} name="pharmacy_other" value={form.pharmacy_other || ''} onChange={handleChange} disabled={isViewOnly} /></div>)}
               <div style={row}>
-                <div style={col}><label style={label}>Pharmacy Address</label><input style={input} name="pharmacy_address" value={form.pharmacy_address || ''} onChange={handleChange} /></div>
-                <div style={col}><label style={label}>Pharmacy Phone</label><input style={input} name="pharmacy_phone" value={form.pharmacy_phone || ''} onChange={handleChange} /></div>
+                <div style={col}><label style={label}>Pharmacy Address</label><input style={input} name="pharmacy_address" value={form.pharmacy_address || ''} onChange={handleChange} disabled={isViewOnly} /></div>
+                <div style={col}><label style={label}>Pharmacy Phone</label><input style={input} name="pharmacy_phone" value={form.pharmacy_phone || ''} onChange={handleChange} disabled={isViewOnly} /></div>
               </div>
 
               <p style={sectionTitle}>Spouse — Health Insurance</p>
               {isMarried ? (
                 <div style={conditionalBox}>
                   <div style={row}>
-                    <div style={col}><label style={label}>Spouse Current Carrier</label><select style={select} name="spouse_health_carrier" value={form.spouse_health_carrier || ''} onChange={handleChange}><option value="">Select...</option>{healthCarriers.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                    <div style={col}><label style={label}>Spouse Plan Type</label><select style={select} name="spouse_health_plan_type" value={form.spouse_health_plan_type || ''} onChange={handleChange}><option value="">Select...</option>{healthPlanTypes.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+                    <div style={col}><label style={label}>Spouse Current Carrier</label><select style={select} name="spouse_health_carrier" value={form.spouse_health_carrier || ''} onChange={handleChange} disabled={isViewOnly}><option value="">Select...</option>{healthCarriers.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                    <div style={col}><label style={label}>Spouse Plan Type</label><select style={select} name="spouse_health_plan_type" value={form.spouse_health_plan_type || ''} onChange={handleChange} disabled={isViewOnly}><option value="">Select...</option>{healthPlanTypes.map(p => <option key={p} value={p}>{p}</option>)}</select></div>
                   </div>
-                  {form.spouse_health_plan_type === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Spouse Plan Type</label><input style={input} name="spouse_health_plan_type_other" value={form.spouse_health_plan_type_other || ''} onChange={handleChange} /></div>)}
-                  <div><label style={label}>Spouse Policy Plan Start Date</label><input style={{ ...input, width: '200px' }} type="date" name="spouse_plan_start_date" value={form.spouse_plan_start_date ? form.spouse_plan_start_date.split('T')[0] : ''} onChange={handleChange} /></div>
+                  {form.spouse_health_plan_type === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Spouse Plan Type</label><input style={input} name="spouse_health_plan_type_other" value={form.spouse_health_plan_type_other || ''} onChange={handleChange} disabled={isViewOnly} /></div>)}
+                  <div><label style={label}>Spouse Policy Plan Start Date</label><input style={{ ...input, width: '200px' }} type="date" name="spouse_plan_start_date" value={form.spouse_plan_start_date ? form.spouse_plan_start_date.split('T')[0] : ''} onChange={handleChange} disabled={isViewOnly} /></div>
                 </div>
               ) : (
                 <div style={mutedBox}>Mark client as married in the Demographic tab to unlock spouse insurance fields.</div>
@@ -295,15 +336,15 @@ function ClientDetail({ contact, onClose, onSave }) {
             <div>
               <p style={sectionTitle}>Life Insurance</p>
               <div style={row}>
-                <div style={col}><label style={label}>Current Carrier</label><select style={select} name="life_carrier" value={form.life_carrier || ''} onChange={handleChange}><option value="">Select...</option>{['American Amicable','Allstate','Cica','Columbian','Foresters','Gerber','GTL','Mutual of Omaha','TransAmerica','Other'].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                <div style={col}><label style={label}>Current Plan Type</label><select style={select} name="life_plan_type" value={form.life_plan_type || ''} onChange={handleChange}><option value="">Select...</option>{['Universal Life (UL)','Index UL','Whole Life','Term Life','Final Expense',"Children's Policy",'Ancillary Health Product'].map(p => <option key={p} value={p}>{p}</option>)}</select></div>
+                <div style={col}><label style={label}>Current Carrier</label><select style={select} name="life_carrier" value={form.life_carrier || ''} onChange={handleChange} disabled={isViewOnly}><option value="">Select...</option>{['American Amicable','Allstate','Cica','Columbian','Foresters','Gerber','GTL','Mutual of Omaha','TransAmerica','Other'].map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                <div style={col}><label style={label}>Current Plan Type</label><select style={select} name="life_plan_type" value={form.life_plan_type || ''} onChange={handleChange} disabled={isViewOnly}><option value="">Select...</option>{['Universal Life (UL)','Index UL','Whole Life','Term Life','Final Expense',"Children's Policy",'Ancillary Health Product'].map(p => <option key={p} value={p}>{p}</option>)}</select></div>
               </div>
-              {form.life_carrier === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Carrier</label><input style={input} name="life_carrier_other" value={form.life_carrier_other || ''} onChange={handleChange} /></div>)}
+              {form.life_carrier === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Carrier</label><input style={input} name="life_carrier_other" value={form.life_carrier_other || ''} onChange={handleChange} disabled={isViewOnly} /></div>)}
               <div style={row}>
-                <div style={col}><label style={label}>Coverage Type</label><select style={select} name="coverage_type" value={form.coverage_type || ''} onChange={handleChange}><option value="">Select...</option><option value="Individual">Individual</option><option value="Joint">Joint</option></select></div>
-                <div style={col}><label style={label}>Interested Coverage</label><input style={input} name="interested_coverage" value={form.interested_coverage || ''} onChange={handleChange} placeholder="e.g. $250,000" /></div>
+                <div style={col}><label style={label}>Coverage Type</label><select style={select} name="coverage_type" value={form.coverage_type || ''} onChange={handleChange} disabled={isViewOnly}><option value="">Select...</option><option value="Individual">Individual</option><option value="Joint">Joint</option></select></div>
+                <div style={col}><label style={label}>Interested Coverage</label><input style={input} name="interested_coverage" value={form.interested_coverage || ''} onChange={handleChange} disabled={isViewOnly} placeholder="e.g. $250,000" /></div>
               </div>
-              <div><label style={label}>Policy Plan Start Date</label><input style={{ ...input, width: '200px' }} type="date" name="life_plan_start_date" value={form.life_plan_start_date ? form.life_plan_start_date.split('T')[0] : ''} onChange={handleChange} /></div>
+              <div><label style={label}>Policy Plan Start Date</label><input style={{ ...input, width: '200px' }} type="date" name="life_plan_start_date" value={form.life_plan_start_date ? form.life_plan_start_date.split('T')[0] : ''} onChange={handleChange} disabled={isViewOnly} /></div>
             </div>
           )}
 
@@ -312,10 +353,11 @@ function ClientDetail({ contact, onClose, onSave }) {
               <p style={sectionTitle}>Current Financial Products</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
                 {financialProducts.map(product => (
-                  <label key={product} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: 'pointer' }}>
-                    <input type="checkbox" value={product}
+                  <label key={product} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', cursor: isViewOnly ? 'not-allowed' : 'pointer' }}>
+                    <input type="checkbox" value={product} disabled={isViewOnly}
                       checked={form.current_financial_products ? form.current_financial_products.includes(product) : false}
                       onChange={e => {
+                        if (isViewOnly) return;
                         const current = form.current_financial_products ? form.current_financial_products.split(',').map(s => s.trim()).filter(Boolean) : [];
                         const updated = e.target.checked ? [...current, product] : current.filter(p => p !== product);
                         setForm({ ...form, current_financial_products: updated.join(', ') });
@@ -327,15 +369,15 @@ function ClientDetail({ contact, onClose, onSave }) {
 
               <p style={sectionTitle}>Carrier & Details</p>
               <div style={row}>
-                <div style={col}><label style={label}>Current Carrier</label><select style={select} name="financial_carrier" value={form.financial_carrier || ''} onChange={handleChange}><option value="">Select...</option>{financialCarriers.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
-                <div style={col}><label style={label}>Risk Tolerance</label><select style={select} name="risk_tolerance" value={form.risk_tolerance || ''} onChange={handleChange}><option value="">Select...</option><option value="conservative">Conservative</option><option value="moderate">Moderate</option><option value="aggressive">Aggressive</option></select></div>
+                <div style={col}><label style={label}>Current Carrier</label><select style={select} name="financial_carrier" value={form.financial_carrier || ''} onChange={handleChange} disabled={isViewOnly}><option value="">Select...</option>{financialCarriers.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                <div style={col}><label style={label}>Risk Tolerance</label><select style={select} name="risk_tolerance" value={form.risk_tolerance || ''} onChange={handleChange} disabled={isViewOnly}><option value="">Select...</option><option value="conservative">Conservative</option><option value="moderate">Moderate</option><option value="aggressive">Aggressive</option></select></div>
               </div>
-              {form.financial_carrier === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Carrier</label><input style={input} name="financial_carrier_other" value={form.financial_carrier_other || ''} onChange={handleChange} /></div>)}
+              {form.financial_carrier === 'Other' && (<div style={{ marginBottom: '12px' }}><label style={label}>Specify Carrier</label><input style={input} name="financial_carrier_other" value={form.financial_carrier_other || ''} onChange={handleChange} disabled={isViewOnly} /></div>)}
               <div style={row}>
-                <div style={col}><label style={label}>Retirement Goal Age</label><input style={input} type="number" name="retirement_goal_age" value={form.retirement_goal_age || ''} onChange={handleChange} placeholder="e.g. 65" /></div>
-                <div style={col}><label style={label}>Interested Financial Products</label><input style={input} name="interested_financial_products" value={form.interested_financial_products || ''} onChange={handleChange} /></div>
+                <div style={col}><label style={label}>Retirement Goal Age</label><input style={input} type="number" name="retirement_goal_age" value={form.retirement_goal_age || ''} onChange={handleChange} disabled={isViewOnly} placeholder="e.g. 65" /></div>
+                <div style={col}><label style={label}>Interested Financial Products</label><input style={input} name="interested_financial_products" value={form.interested_financial_products || ''} onChange={handleChange} disabled={isViewOnly} /></div>
               </div>
-              <div style={{ marginBottom: '12px' }}><label style={label}>Plan Start Date</label><input style={{ ...input, width: '200px' }} type="date" name="financial_plan_start_date" value={form.financial_plan_start_date ? form.financial_plan_start_date.split('T')[0] : ''} onChange={handleChange} /></div>
+              <div style={{ marginBottom: '12px' }}><label style={label}>Plan Start Date</label><input style={{ ...input, width: '200px' }} type="date" name="financial_plan_start_date" value={form.financial_plan_start_date ? form.financial_plan_start_date.split('T')[0] : ''} onChange={handleChange} disabled={isViewOnly} /></div>
             </div>
           )}
 
@@ -362,22 +404,26 @@ function ClientDetail({ contact, onClose, onSave }) {
           )}
 
           <div style={{ paddingTop: '16px', borderTop: '1px solid #eee', marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <button onClick={async () => {
-              if (window.confirm(`Delete ${clientName}? This cannot be undone.`)) {
-                const token = localStorage.getItem('token');
-                await fetch(`https://policy-desk-production.up.railway.app/api/contacts/${form.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
-                onSave();
-                onClose();
-              }
-            }} style={{ padding: '9px 18px', borderRadius: '6px', border: '1px solid #F5C6CB', cursor: 'pointer', fontSize: '14px', backgroundColor: '#F8D7DA', color: '#721C24' }}>
-              🗑 Delete
-            </button>
+            {!isViewOnly ? (
+              <button onClick={async () => {
+                if (window.confirm(`Delete ${clientName}? This cannot be undone.`)) {
+                  const token = localStorage.getItem('token');
+                  await fetch(`https://policy-desk-production.up.railway.app/api/contacts/${form.id}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${token}` } });
+                  onSave();
+                  onClose();
+                }
+              }} style={{ padding: '9px 18px', borderRadius: '6px', border: '1px solid #F5C6CB', cursor: 'pointer', fontSize: '14px', backgroundColor: '#F8D7DA', color: '#721C24' }}>
+                🗑 Delete
+              </button>
+            ) : <div />}
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               {saved && <span style={{ color: '#155724', fontSize: '13px', fontWeight: '600' }}>✓ Saved!</span>}
               <button onClick={onClose} style={{ padding: '9px 18px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', fontSize: '14px', backgroundColor: 'white' }}>Close</button>
-              <button onClick={handleSave} disabled={saving} style={{ padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: saving ? '#888' : RED, color: 'white', fontWeight: '600' }}>
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
+              {!isViewOnly && (
+                <button onClick={handleSave} disabled={saving} style={{ padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: saving ? '#888' : RED, color: 'white', fontWeight: '600' }}>
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              )}
             </div>
           </div>
 
