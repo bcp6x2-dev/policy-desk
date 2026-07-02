@@ -20,6 +20,22 @@ res.status(401).json({ error: 'Invalid token' });
 }
 }
 
+// GET all active user names for broker dropdown (any logged-in user)
+router.get('/brokers', async (req, res) => {
+try {
+const token = req.headers.authorization?.split(' ')[1];
+if (!token) return res.status(401).json({ error: 'No token' });
+jwt.verify(token, SECRET);
+const result = await pool.query(
+'SELECT id, name, role FROM users WHERE active = true ORDER BY name ASC'
+);
+res.json(result.rows);
+} catch (err) {
+console.error(err);
+res.status(500).json({ error: 'Server error' });
+}
+});
+
 // GET all users (admin only)
 router.get('/', requireAdmin, async (req, res) => {
 try {
