@@ -182,6 +182,7 @@ if (!user) return <Login onLogin={handleLogin} />;
 const dueReminders = reminders.filter(r => new Date(r.reminder_date) <= new Date());
 const upcomingReminders = reminders.filter(r => new Date(r.reminder_date) > new Date());
 const allPageSelected = paginated.length > 0 && paginated.every(c => selectedIds.includes(c.id));
+const isAdmin = user.role === 'admin';
 
 return (
 <div style={styles.app}>
@@ -250,7 +251,7 @@ return (
     </div>
 
     <button onClick={() => setShowDashboard(true)} style={styles.dashBtn}>📊 Dashboard</button>
-    {user.role === 'admin' && (
+    {isAdmin && (
       <button onClick={() => setShowUsers(true)} style={styles.usersBtn}>👥 Manage Users</button>
     )}
     <button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: `1px solid ${CREAM}`, color: CREAM, padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>Sign Out</button>
@@ -294,7 +295,7 @@ return (
 ))}
 </div>
 
-{selectedIds.length > 0 && (
+{isAdmin && selectedIds.length > 0 && (
 <div style={{ backgroundColor: '#FDF5F5', border: '1px solid #E8C8C8', borderRadius: '8px', padding: '10px 16px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 <span style={{ fontSize: '14px', color: BLACK, fontWeight: '600' }}>{selectedIds.length} contact{selectedIds.length !== 1 ? 's' : ''} selected</span>
 <div style={{ display: 'flex', gap: '8px' }}>
@@ -311,9 +312,11 @@ return (
 <table style={styles.table}>
 <thead>
 <tr>
+{isAdmin && (
 <th style={{ ...styles.th, width: '40px' }}>
 <input type="checkbox" checked={allPageSelected} onChange={toggleSelectAll} style={{ cursor: 'pointer' }} />
 </th>
+)}
 <th style={styles.th}>Name</th>
 <th style={styles.th}>Email</th>
 <th style={styles.th}>Phone</th>
@@ -323,16 +326,18 @@ return (
 </thead>
 <tbody>
 {paginated.length === 0 ? (
-<tr><td colSpan="6" style={{ ...styles.td, textAlign: 'center', color: '#888' }}>No contacts found</td></tr>
+<tr><td colSpan={isAdmin ? 6 : 5} style={{ ...styles.td, textAlign: 'center', color: '#888' }}>No contacts found</td></tr>
 ) : (
 paginated.map(contact => (
 <tr key={contact.id}
 style={{ cursor: 'pointer', backgroundColor: selectedIds.includes(contact.id) ? '#FDF5F5' : 'white' }}
 onMouseEnter={e => { if (!selectedIds.includes(contact.id)) e.currentTarget.style.backgroundColor = '#F9F9F9'; }}
 onMouseLeave={e => { e.currentTarget.style.backgroundColor = selectedIds.includes(contact.id) ? '#FDF5F5' : 'white'; }}>
+{isAdmin && (
 <td style={{ ...styles.td, width: '40px' }} onClick={e => { e.stopPropagation(); toggleSelect(contact.id); }}>
 <input type="checkbox" checked={selectedIds.includes(contact.id)} onChange={() => toggleSelect(contact.id)} style={{ cursor: 'pointer' }} />
 </td>
+)}
 <td style={{ ...styles.td, fontWeight: '600' }} onClick={() => setSelectedContact(contact)}>{contact.name}</td>
 <td style={styles.td} onClick={() => setSelectedContact(contact)}>{contact.email}</td>
 <td style={styles.td} onClick={() => setSelectedContact(contact)}>{contact.phone}</td>
