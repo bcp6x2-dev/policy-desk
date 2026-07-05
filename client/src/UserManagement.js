@@ -7,7 +7,7 @@ const [users, setUsers] = useState([]);
 const [loading, setLoading] = useState(true);
 const [showForm, setShowForm] = useState(false);
 const [editUser, setEditUser] = useState(null);
-const [form, setForm] = useState({ name: '', email: '', password: '', role: 'employee' });
+const [form, setForm] = useState({ name: '', email: '', password: '', newPassword: '', role: 'employee' });
 const [saving, setSaving] = useState(false);
 const [error, setError] = useState('');
 
@@ -39,6 +39,8 @@ formOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgrou
 formModal: { backgroundColor: 'white', borderRadius: '10px', padding: '28px', width: '420px', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' },
 formTitle: { margin: '0 0 20px', color: RED },
 errorMsg: { backgroundColor: '#F8D7DA', color: '#721C24', padding: '10px', borderRadius: '6px', marginBottom: '12px', fontSize: '14px' },
+passwordSection: { backgroundColor: '#F8F9FA', border: '1px solid #E0E0E0', borderRadius: '8px', padding: '14px', marginBottom: '12px' },
+passwordSectionTitle: { fontSize: '12px', fontWeight: '700', color: '#555', textTransform: 'uppercase', marginBottom: '10px', marginTop: 0 },
 };
 
 useEffect(() => {
@@ -66,9 +68,16 @@ setError('');
 try {
 const url = editUser ? `${API}/api/users/${editUser.id}` : `${API}/api/users`;
 const method = editUser ? 'PUT' : 'POST';
-const body = editUser
-? { name: form.name, email: form.email, role: form.role, active: form.active }
-: { name: form.name, email: form.email, password: form.password, role: form.role };
+
+let body;
+if (editUser) {
+body = { name: form.name, email: form.email, role: form.role, active: form.active };
+if (form.newPassword && form.newPassword.trim() !== '') {
+body.password = form.newPassword;
+}
+} else {
+body = { name: form.name, email: form.email, password: form.password, role: form.role };
+}
 
 const res = await fetch(url, {
 method,
@@ -80,7 +89,7 @@ if (!res.ok) { setError(data.error || 'Failed to save'); setSaving(false); retur
 fetchUsers();
 setShowForm(false);
 setEditUser(null);
-setForm({ name: '', email: '', password: '', role: 'employee' });
+setForm({ name: '', email: '', password: '', newPassword: '', role: 'employee' });
 } catch (err) {
 setError('Connection error');
 }
@@ -99,13 +108,13 @@ fetchUsers();
 
 function handleEdit(user) {
 setEditUser(user);
-setForm({ name: user.name, email: user.email, password: '', role: user.role, active: user.active });
+setForm({ name: user.name, email: user.email, password: '', newPassword: '', role: user.role, active: user.active });
 setShowForm(true);
 }
 
 function handleAdd() {
 setEditUser(null);
-setForm({ name: '', email: '', password: '', role: 'employee' });
+setForm({ name: '', email: '', password: '', newPassword: '', role: 'employee' });
 setShowForm(true);
 }
 
@@ -171,15 +180,26 @@ return (
 <input style={s.input} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
 <label style={s.label}>Email Address *</label>
 <input style={s.input} type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} required />
+
 {!editUser && <>
 <label style={s.label}>Temporary Password *</label>
 <input style={s.input} type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required placeholder="They can change this after login" />
 </>}
+
+{editUser && <>
+<div style={s.passwordSection}>
+<p style={s.passwordSectionTitle}>🔑 Reset Password (optional)</p>
+<label style={s.label}>New Password</label>
+<input style={s.input} type="password" value={form.newPassword} onChange={e => setForm({ ...form, newPassword: e.target.value })} placeholder="Leave blank to keep current password" />
+</div>
+</>}
+
 <label style={s.label}>Role *</label>
 <select style={s.select} value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
 <option value="employee">Employee</option>
 <option value="admin">Admin</option>
 </select>
+
 {editUser && <>
 <label style={s.label}>Status</label>
 <select style={s.select} value={form.active} onChange={e => setForm({ ...form, active: e.target.value === 'true' })}>
@@ -187,6 +207,7 @@ return (
 <option value="false">Inactive</option>
 </select>
 </>}
+
 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '8px' }}>
 <button type="button" style={s.closeBtn} onClick={() => setShowForm(false)}>Cancel</button>
 <button type="submit" style={s.saveBtn} disabled={saving}>{saving ? 'Saving...' : editUser ? 'Save Changes' : 'Create User'}</button>
