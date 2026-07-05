@@ -69,17 +69,28 @@ res.status(500).json({ error: 'Server error' });
 router.put('/:id', requireAdmin, async (req, res) => {
 try {
 const { id } = req.params;
-const { name, email, role, active } = req.body;
-const result = await pool.query(
+const { name, email, role, active, password } = req.body;
+
+let result;
+if (password && password.trim() !== '') {
+const hashedPassword = await bcrypt.hash(password, 10);
+result = await pool.query(
+'UPDATE users SET name=$1, email=$2, role=$3, active=$4, password=$5 WHERE id=$6 RETURNING id, name, email, role, active',
+[name, email, role, active, hashedPassword, id]
+);
+} else {
+result = await pool.query(
 'UPDATE users SET name=$1, email=$2, role=$3, active=$4 WHERE id=$5 RETURNING id, name, email, role, active',
 [name, email, role, active, id]
 );
+}
 res.json(result.rows[0]);
 } catch (err) {
 console.error(err);
 res.status(500).json({ error: 'Server error' });
 }
 });
+
 
 // DELETE user (admin only)
 router.delete('/:id', requireAdmin, async (req, res) => {
