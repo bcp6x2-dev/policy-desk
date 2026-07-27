@@ -9,6 +9,7 @@ function ClientForm({ onSave, onClose }) {
     is_married: false,
     spouse_first_name: '', spouse_middle_name: '', spouse_last_name: '', spouse_dob: '',
     spouse_mbi_number: '',
+    spouse_medicaid_number: '',
     address_street: '', address_suite: '', address_zip: '', address_city: '', address_state: '', address_county: '',
     mailing_different: false,
     mailing_address: '',
@@ -212,7 +213,7 @@ function ClientForm({ onSave, onClose }) {
                 <p style={sectionTitle}>Marital Status</p>
                 <div style={{ marginBottom: '12px' }}>
                   <label style={{ fontSize: '14px', marginRight: '20px' }}>
-                    <input type="radio" checked={!isMarried} onChange={() => setForm({ ...form, is_married: false, spouse_first_name: '', spouse_middle_name: '', spouse_last_name: '', spouse_dob: '', spouse_mbi_number: '' })} style={{ marginRight: '6px' }} />No
+                    <input type="radio" checked={!isMarried} onChange={() => setForm({ ...form, is_married: false, spouse_first_name: '', spouse_middle_name: '', spouse_last_name: '', spouse_dob: '', spouse_mbi_number: '', spouse_medicaid_number: '' })} style={{ marginRight: '6px' }} />No
                   </label>
                   <label style={{ fontSize: '14px' }}>
                     <input type="radio" checked={isMarried} onChange={() => setForm({ ...form, is_married: true })} style={{ marginRight: '6px' }} />Yes
@@ -229,6 +230,10 @@ function ClientForm({ onSave, onClose }) {
                     <div style={row}>
                       <div style={col}><label style={label}>Spouse Date of Birth</label><input style={input} type="date" name="spouse_dob" value={form.spouse_dob} onChange={handleChange} /></div>
                       <div style={col}><label style={label}>Spouse MBI #</label><input style={input} name="spouse_mbi_number" value={form.spouse_mbi_number} onChange={handleChange} placeholder="e.g. 1EG4-TE5-MK72" /></div>
+                    </div>
+                    <div style={row}>
+                      <div style={col}><label style={label}>Spouse Medicaid #</label><input style={input} name="spouse_medicaid_number" value={form.spouse_medicaid_number} onChange={handleChange} placeholder="Spouse Medicaid Number" /></div>
+                      <div style={col}></div>
                     </div>
                   </div>
                 )}
