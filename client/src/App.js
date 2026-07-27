@@ -137,7 +137,11 @@ const filtered = contacts.filter(c => {
 const matchesSearch =
 c.name?.toLowerCase().includes(search.toLowerCase()) ||
 c.email?.toLowerCase().includes(search.toLowerCase()) ||
-c.phone?.includes(search);
+c.phone?.includes(search) ||
+c.address_zip?.includes(search) ||
+c.health_carrier?.toLowerCase().includes(search.toLowerCase()) ||
+c.financial_carrier?.toLowerCase().includes(search.toLowerCase()) ||
+c.assigned_to?.toLowerCase().includes(search.toLowerCase());
 const matchesType = filterType === 'all' || (c.client_types && c.client_types.includes(filterType));
 const matchesStatus = filterStatus === 'all' || c.status === filterStatus;
 return matchesSearch && matchesType && matchesStatus;
@@ -265,7 +269,7 @@ return (
 <p style={{ margin: '4px 0 0', color: '#888', fontSize: '13px' }}>{contacts.length} total records</p>
 </div>
 <div style={{ display: 'flex', gap: '12px' }}>
-<input style={styles.search} placeholder="Search by name, email or phone..." value={search} onChange={e => setSearch(e.target.value)} />
+<input style={styles.search} placeholder="Search by name, email, phone, zip, carrier, broker..." value={search} onChange={e => setSearch(e.target.value)} 
 <button style={styles.importBtn} onClick={() => setShowImport(true)}>📥 Import Excel</button>
 <button onClick={() => { const url = `https://policy-desk-production.up.railway.app/api/contacts/export?type=${filterType}&status=${filterStatus}`; window.open(url, '_blank'); }} style={styles.exportBtn}>⬇ Export CSV</button>
 <button style={styles.addBtn} onClick={() => setShowClientForm(true)}>+ Add Client</button>
