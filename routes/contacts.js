@@ -1,3 +1,4 @@
+// contacts routes v2
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
@@ -56,7 +57,7 @@ router.post('/', async (req, res) => {
       current_financial_products, interested_financial_products,
       financial_carrier, financial_carrier_other, financial_plan_start_date,
       retirement_goal_age, risk_tolerance, notes, last_contacted,
-      mbi_number, spouse_mbi_number, medicaid_number, spouse_medicaid_numberS
+      mbi_number, spouse_mbi_number, medicaid_number, spouse_medicaid_number
     } = req.body;
 
     const result = await pool.query(
@@ -100,7 +101,7 @@ router.post('/', async (req, res) => {
         current_financial_products, interested_financial_products,
         financial_carrier, financial_carrier_other, financial_plan_start_date || null,
         retirement_goal_age || null, risk_tolerance, notes, last_contacted || null,
-        mbi_number || null, spouse_mbi_number || null
+        mbi_number || null, spouse_mbi_number || null, medicaid_number || null, spouse_medicaid_number || null
       ]
     );
     res.json(result.rows[0]);
@@ -130,7 +131,7 @@ router.put('/:id', async (req, res) => {
       current_financial_products, interested_financial_products,
       financial_carrier, financial_carrier_other, financial_plan_start_date,
       retirement_goal_age, risk_tolerance, notes, last_contacted,
-      mbi_number, spouse_mbi_number,medicaid_number, spouse_medicaid_number
+      mbi_number, spouse_mbi_number, medicaid_number, spouse_medicaid_number
     } = req.body;
 
     const result = await pool.query(
@@ -151,7 +152,7 @@ router.put('/:id', async (req, res) => {
         financial_carrier=$52, financial_carrier_other=$53, financial_plan_start_date=$54,
         retirement_goal_age=$55, risk_tolerance=$56, notes=$57, last_contacted=$58,
         mbi_number=$59, spouse_mbi_number=$60, medicaid_number=$61, spouse_medicaid_number=$62
-       WHERE id=$61 RETURNING *`,
+       WHERE id=$63 RETURNING *`,
       [
         name || `${first_name || ''} ${last_name || ''}`.trim(),
         first_name, middle_name, last_name,
@@ -169,7 +170,7 @@ router.put('/:id', async (req, res) => {
         current_financial_products, interested_financial_products,
         financial_carrier, financial_carrier_other, financial_plan_start_date || null,
         retirement_goal_age || null, risk_tolerance, notes, last_contacted || null,
-        mbi_number || null, spouse_mbi_number || null,
+        mbi_number || null, spouse_mbi_number || null, medicaid_number || null, spouse_medicaid_number || null,
         id
       ]
     );
