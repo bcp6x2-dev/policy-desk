@@ -52,6 +52,7 @@ router.post('/confirm', upload.single('file'), async (req, res) => {
       const first_name = rowObj[mapping.first_name] || '';
       const last_name = rowObj[mapping.last_name] || '';
       const address_street = rowObj[mapping.address_street] || rowObj[mapping.address] || '';
+      const address_suite = rowObj[mapping.address_suite] || '';
       const address_city = rowObj[mapping.address_city] || '';
       const address_state = rowObj[mapping.address_state] || '';
       const address_zip = rowObj[mapping.address_zip] || '';
@@ -64,6 +65,7 @@ router.post('/confirm', upload.single('file'), async (req, res) => {
       const status = rowObj[mapping.status] || 'lead';
       const client_types = rowObj[mapping.client_types] || '';
       const mbi_number = rowObj[mapping.mbi_number] || '';
+      const medicaid_number = rowObj[mapping.medicaid_number] || '';
 
       if (!name && !first_name) { skipped++; continue; }
 
@@ -100,11 +102,11 @@ router.post('/confirm', upload.single('file'), async (req, res) => {
           `INSERT INTO contacts
             (name, first_name, last_name, email, phone, dob, status, source,
              client_types, assigned_to,
-             address_street, address_city, address_state, address_zip, address_county,
+             address_street, address_suite, address_city, address_state, address_zip, address_county,
              health_carrier, health_plan_type,
              financial_carrier, financial_plan_start_date,
-             mbi_number)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20)
+             mbi_number, medicaid_number)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22)
            ON CONFLICT DO NOTHING`,
           [
             finalName,
@@ -118,6 +120,7 @@ router.post('/confirm', upload.single('file'), async (req, res) => {
             client_types || null,
             assigned_to,
             address_street || null,
+            address_suite || null,
             address_city || null,
             address_state || null,
             address_zip || null,
@@ -126,7 +129,8 @@ router.post('/confirm', upload.single('file'), async (req, res) => {
             health_plan_type || null,
             financial_carrier || null,
             financial_plan_start_date,
-            mbi_number || null
+            mbi_number || null,
+            medicaid_number || null
           ]
         );
         imported++;
