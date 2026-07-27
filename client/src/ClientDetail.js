@@ -230,6 +230,14 @@ function ClientDetail({ contact, onClose, onSave }) {
                 <label style={label}>MBI # (Medicare Beneficiary ID)</label>
                 <input style={{ ...input, maxWidth: '300px' }} name="mbi_number" value={form.mbi_number || ''} onChange={handleChange} disabled={isViewOnly} placeholder="e.g. 1EG4-TE5-MK72" />
               </div>
+              <div style={{ marginBottom: '12px' }}>
+  <label style={label}>Medicaid #</label>
+  <input style={{ ...input, maxWidth: '300px' }} name="medicaid_number" value={form.medicaid_number || ''} onChange={handleChange} disabled={isViewOnly} placeholder="Medicaid Number" />
+</div>
+</div>.style={row}>
+  <div style={col}><label style={label}>Spouse Medicaid #</label><input style={input} name="spouse_medicaid_number" value={form.spouse_medicaid_number || ''} onChange={handleChange} disabled={isViewOnly} placeholder="Spouse Medicaid Number" /></div>
+  <div style={col}></div>
+</div>
 
               <p style={sectionTitle}>Home Address</p>
               <div style={{ marginBottom: '12px' }}><label style={label}>Street Address</label><input style={input} name="address_street" value={form.address_street || ''} onChange={handleChange} disabled={isViewOnly} /></div>
