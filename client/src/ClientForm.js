@@ -5,6 +5,7 @@ function ClientForm({ onSave, onClose }) {
     first_name: '', middle_name: '', last_name: '',
     email: '', phone: '', dob: '',
     mbi_number: '',
+    medicaid_number: '',
     is_married: false,
     spouse_first_name: '', spouse_middle_name: '', spouse_last_name: '', spouse_dob: '',
     spouse_mbi_number: '',
@@ -238,9 +239,16 @@ function ClientForm({ onSave, onClose }) {
                   <div style={col}><label style={label}>Phone</label><input style={input} name="phone" value={form.phone} onChange={handleChange} placeholder="(000) 000-0000" /></div>
                   <div style={col}><label style={label}>Email</label><input style={input} type="email" name="email" value={form.email} onChange={handleChange} /></div>
                 </div>
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={label}>MBI # (Medicare Beneficiary ID)</label>
-                  <input style={{ ...input, maxWidth: '300px' }} name="mbi_number" value={form.mbi_number} onChange={handleChange} placeholder="e.g. 1EG4-TE5-MK72" />
+
+                <div style={row}>
+                  <div style={col}>
+                    <label style={label}>MBI # (Medicare Beneficiary ID)</label>
+                    <input style={input} name="mbi_number" value={form.mbi_number} onChange={handleChange} placeholder="e.g. 1EG4-TE5-MK72" />
+                  </div>
+                  <div style={col}>
+                    <label style={label}>Medicaid #</label>
+                    <input style={input} name="medicaid_number" value={form.medicaid_number} onChange={handleChange} placeholder="Medicaid Number" />
+                  </div>
                 </div>
 
                 <p style={sectionTitle}>Home Address</p>
