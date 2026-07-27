@@ -234,7 +234,7 @@ function ClientDetail({ contact, onClose, onSave }) {
   <label style={label}>Medicaid #</label>
   <input style={{ ...input, maxWidth: '300px' }} name="medicaid_number" value={form.medicaid_number || ''} onChange={handleChange} disabled={isViewOnly} placeholder="Medicaid Number" />
 </div>
-</div>.style={row}>
+<div style={row}>
   <div style={col}><label style={label}>Spouse Medicaid #</label><input style={input} name="spouse_medicaid_number" value={form.spouse_medicaid_number || ''} onChange={handleChange} disabled={isViewOnly} placeholder="Spouse Medicaid Number" /></div>
   <div style={col}></div>
 </div>
