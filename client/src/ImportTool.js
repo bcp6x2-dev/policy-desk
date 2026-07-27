@@ -8,7 +8,7 @@ const [file, setFile] = useState(null);
 const [headers, setHeaders] = useState([]);
 const [preview, setPreview] = useState([]);
 const [totalRows, setTotalRows] = useState(0);
-onst [mapping, setMapping] = useState({
+const [mapping, setMapping] = useState({
   name: '', first_name: '', last_name: '', email: '', phone: '', dob: '',
   address_street: '', address_suite: '', address_city: '', address_state: '', address_zip: '', address_county: '',
   health_carrier: '', health_plan_type: '',
