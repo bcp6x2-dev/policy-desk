@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, {useState, useEffect, useRef } from 'react';
 import Login from './Login';
 import ClientForm from './ClientForm';
 import ClientDetail from './ClientDetail';
@@ -159,7 +159,7 @@ app: { fontFamily: 'Arial', backgroundColor: '#F4F6F9', minHeight: '100vh' },
 header: { backgroundColor: BLACK, padding: '16px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `4px solid ${RED}` },
 body: { padding: '24px 32px' },
 toolbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' },
-search: { padding: '8px 14px', borderRadius: '6px', border: '1px solid #ccc', width: '280px', fontSize: '14px' },
+search: { padding: '8px 14px', borderRadius: '6px', border: '1px solid #ccc', width: '320px', fontSize: '14px' },
 addBtn: { backgroundColor: RED, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
 exportBtn: { backgroundColor: BLACK, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
 importBtn: { backgroundColor: RED, color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', cursor: 'pointer', fontSize: '14px', fontWeight: '600' },
@@ -269,7 +269,7 @@ return (
 <p style={{ margin: '4px 0 0', color: '#888', fontSize: '13px' }}>{contacts.length} total records</p>
 </div>
 <div style={{ display: 'flex', gap: '12px' }}>
-<input style={styles.search} placeholder="Search by name, email, phone, zip, carrier, broker..." value={search} onChange={e => setSearch(e.target.value)} 
+<input style={styles.search} placeholder="Search by name, email, phone, zip, carrier, broker..." value={search} onChange={e => setSearch(e.target.value)} />
 <button style={styles.importBtn} onClick={() => setShowImport(true)}>📥 Import Excel</button>
 <button onClick={() => { const url = `https://policy-desk-production.up.railway.app/api/contacts/export?type=${filterType}&status=${filterStatus}`; window.open(url, '_blank'); }} style={styles.exportBtn}>⬇ Export CSV</button>
 <button style={styles.addBtn} onClick={() => setShowClientForm(true)}>+ Add Client</button>
