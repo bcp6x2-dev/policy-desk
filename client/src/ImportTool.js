@@ -8,12 +8,12 @@ const [file, setFile] = useState(null);
 const [headers, setHeaders] = useState([]);
 const [preview, setPreview] = useState([]);
 const [totalRows, setTotalRows] = useState(0);
-const [mapping, setMapping] = useState({
+onst [mapping, setMapping] = useState({
   name: '', first_name: '', last_name: '', email: '', phone: '', dob: '',
-  address_street: '', address_city: '', address_state: '', address_zip: '', address_county: '',
+  address_street: '', address_suite: '', address_city: '', address_state: '', address_zip: '', address_county: '',
   health_carrier: '', health_plan_type: '',
   financial_carrier: '', financial_plan_start_date: '',
-  client_types: '', assigned_to: '', status: '', mbi_number: ''
+  client_types: '', assigned_to: '', status: '', mbi_number: '', medicaid_number: '', spouse_mbi_number: '', spouse_medicaid_number: ''
 });
 const [result, setResult] = useState(null);
 const [loading, setLoading] = useState(false);
@@ -52,12 +52,14 @@ const fieldGroups = [
       { key: 'phone', label: 'Phone' },
       { key: 'dob', label: 'Date of Birth' },
       { key: 'mbi_number', label: 'MBI # (Medicare Beneficiary ID)' },
+      { key: 'medicaid_number', label: 'Medicaid #' },
     ]
   },
   {
     title: 'Address',
     fields: [
       { key: 'address_street', label: 'Street Address' },
+      { key: 'address_suite', label: 'Address Line 2 / Apt' },
       { key: 'address_city', label: 'City' },
       { key: 'address_state', label: 'State' },
       { key: 'address_zip', label: 'Zip Code' },
