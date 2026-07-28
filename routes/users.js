@@ -65,6 +65,30 @@ res.status(500).json({ error: 'Server error' });
 }
 });
 
+// PUT change own password (any logged-in user)
+router.put('/change-password', async (req, res) => {
+try {
+const token = req.headers.authorization?.split(' ')[1];
+if (!token) return res.status(401).json({ error: 'No token' });
+const decoded = jwt.verify(token, SECRET);
+const { currentPassword, newPassword } = req.body;
+
+const userResult = await pool.query('SELECT * FROM users WHERE id = $1', [decoded.id]);
+if (userResult.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+
+const user = userResult.rows[0];
+const validPassword = await bcrypt.compare(currentPassword, user.password);
+if (!validPassword) return res.status(400).json({ error: 'Current password is incorrect' });
+
+const hashedPassword = await bcrypt.hash(newPassword, 10);
+await pool.query('UPDATE users SET password = $1 WHERE id = $2', [hashedPassword, decoded.id]);
+res.json({ success: true });
+} catch (err) {
+console.error(err);
+res.status(500).json({ error: 'Server error' });
+}
+});
+
 // PUT update user (admin only)
 router.put('/:id', requireAdmin, async (req, res) => {
 try {
@@ -90,7 +114,6 @@ console.error(err);
 res.status(500).json({ error: 'Server error' });
 }
 });
-
 
 // DELETE user (admin only)
 router.delete('/:id', requireAdmin, async (req, res) => {
