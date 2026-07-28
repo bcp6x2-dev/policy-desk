@@ -344,9 +344,35 @@ return (
 {isAdmin && selectedIds.length > 0 && (
 <div style={{ backgroundColor: '#FDF5F5', border: '1px solid #E8C8C8', borderRadius: '8px', padding: '10px 16px', marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 <span style={{ fontSize: '14px', color: BLACK, fontWeight: '600' }}>{selectedIds.length} contact{selectedIds.length !== 1 ? 's' : ''} selected</span>
-<div style={{ display: 'flex', gap: '8px' }}>
-<button onClick={() => setSelectedIds([])} style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', fontSize: '13px', backgroundColor: 'white' }}>Clear</button>
-<button onClick={handleBulkDelete} style={{ padding: '6px 14px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px', backgroundColor: '#721C24', color: 'white', fontWeight: '600' }}>🗑 Delete Selected</button>
+<div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+  <select
+    onChange={async e => {
+      const newStatus = e.target.value;
+      if (!newStatus) return;
+      if (!window.confirm(`Change ${selectedIds.length} contact(s) to "${newStatus}"?`)) return;
+      const t = localStorage.getItem('token');
+      await Promise.all(selectedIds.map(id =>
+        fetch(`https://policy-desk-production.up.railway.app/api/contacts/${id}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
+          body: JSON.stringify({ status: newStatus })
+        })
+      ));
+      setSelectedIds([]);
+      fetchContacts();
+      e.target.value = '';
+    }}
+    style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '13px', cursor: 'pointer' }}
+    defaultValue=""
+  >
+    <option value="">Change Status...</option>
+    <option value="lead">Lead</option>
+    <option value="prospect">Prospect</option>
+    <option value="active">Active Client</option>
+    <option value="inactive">Inactive</option>
+  </select>
+  <button onClick={() => setSelectedIds([])} style={{ padding: '6px 14px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', fontSize: '13px', backgroundColor: 'white' }}>Clear</button>
+  <button onClick={handleBulkDelete} style={{ padding: '6px 14px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '13px', backgroundColor: '#721C24', color: 'white', fontWeight: '600' }}>🗑 Delete Selected</button>
 </div>
 </div>
 )}

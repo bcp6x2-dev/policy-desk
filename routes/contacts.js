@@ -201,5 +201,19 @@ router.delete('/', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
-
+// PUT update status only
+router.put('/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const result = await pool.query(
+      'UPDATE contacts SET status=$1 WHERE id=$2 RETURNING *',
+      [status, id]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 module.exports = router;
