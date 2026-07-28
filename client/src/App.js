@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Login from './Login';
 import ClientForm from './ClientForm';
 import ClientDetail from './ClientDetail';
@@ -19,11 +19,16 @@ const [filterStatus, setFilterStatus] = useState('all');
 const [showImport, setShowImport] = useState(false);
 const [showDashboard, setShowDashboard] = useState(false);
 const [showUsers, setShowUsers] = useState(false);
+const [showMyAccount, setShowMyAccount] = useState(false);
 const [currentPage, setCurrentPage] = useState(1);
 const [reminders, setReminders] = useState([]);
 const [unreadCount, setUnreadCount] = useState(0);
 const [showBell, setShowBell] = useState(false);
 const [selectedIds, setSelectedIds] = useState([]);
+const [myAccountForm, setMyAccountForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+const [myAccountError, setMyAccountError] = useState('');
+const [myAccountSuccess, setMyAccountSuccess] = useState('');
+const [myAccountSaving, setMyAccountSaving] = useState(false);
 const bellRef = useRef(null);
 const contactsPerPage = 25;
 
@@ -131,6 +136,42 @@ setSelectedIds(paginated.map(c => c.id));
 
 function toggleSelect(id) {
 setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+}
+
+async function handleChangePassword(e) {
+e.preventDefault();
+setMyAccountError('');
+setMyAccountSuccess('');
+if (myAccountForm.newPassword !== myAccountForm.confirmPassword) {
+setMyAccountError('New passwords do not match.');
+return;
+}
+if (myAccountForm.newPassword.length < 6) {
+setMyAccountError('New password must be at least 6 characters.');
+return;
+}
+setMyAccountSaving(true);
+try {
+const t = localStorage.getItem('token');
+const res = await fetch('https://policy-desk-production.up.railway.app/api/users/change-password', {
+method: 'PUT',
+headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${t}` },
+body: JSON.stringify({
+currentPassword: myAccountForm.currentPassword,
+newPassword: myAccountForm.newPassword,
+}),
+});
+const data = await res.json();
+if (!res.ok) {
+setMyAccountError(data.error || 'Failed to change password.');
+} else {
+setMyAccountSuccess('Password changed successfully!');
+setMyAccountForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+}
+} catch (err) {
+setMyAccountError('Connection error. Please try again.');
+}
+setMyAccountSaving(false);
 }
 
 const filtered = contacts.filter(c => {
@@ -258,6 +299,7 @@ return (
     {isAdmin && (
       <button onClick={() => setShowUsers(true)} style={styles.usersBtn}>👥 Manage Users</button>
     )}
+    <button onClick={() => { setShowMyAccount(true); setMyAccountError(''); setMyAccountSuccess(''); }} style={styles.usersBtn}>👤 My Account</button>
     <button onClick={handleLogout} style={{ backgroundColor: 'transparent', border: `1px solid ${CREAM}`, color: CREAM, padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px' }}>Sign Out</button>
   </div>
 </div>
@@ -383,7 +425,47 @@ onSave={() => { fetchContacts(); setSelectedContact(null); }}
 
 {showDashboard && <Dashboard contacts={contacts} onClose={() => setShowDashboard(false)} />}
 
-{showUsers && <UserManagement token={token} onClose={() => setShowUsers(false)} />}
+{showUsers && <UserManagement currentUser={user} token={token} onClose={() => setShowUsers(false)} />}
+
+{showMyAccount && (
+<div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+<div style={{ backgroundColor: 'white', borderRadius: '12px', width: '420px', boxShadow: '0 8px 30px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
+<div style={{ backgroundColor: BLACK, padding: '20px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '4px solid ' + RED }}>
+<h2 style={{ color: 'white', margin: 0, fontSize: '18px', fontWeight: 'bold' }}>👤 My Account</h2>
+<button onClick={() => setShowMyAccount(false)} style={{ background: 'none', border: 'none', color: 'white', fontSize: '20px', cursor: 'pointer' }}>✕</button>
+</div>
+<div style={{ padding: '24px' }}>
+<div style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#F8F9FA', borderRadius: '8px' }}>
+<p style={{ margin: 0, fontSize: '13px', color: '#555' }}>Logged in as</p>
+<p style={{ margin: '4px 0 0', fontSize: '16px', fontWeight: '700', color: BLACK }}>{user.name}</p>
+<p style={{ margin: '2px 0 0', fontSize: '13px', color: '#888' }}>{user.email} · <span style={{ color: RED, fontWeight: '600' }}>{user.role}</span></p>
+</div>
+
+<p style={{ fontSize: '13px', fontWeight: '700', color: RED, textTransform: 'uppercase', marginBottom: '12px', paddingBottom: '6px', borderBottom: '1px solid #F5E8E8' }}>Change Password</p>
+
+{myAccountError && <div style={{ backgroundColor: '#F8D7DA', color: '#721C24', padding: '10px', borderRadius: '6px', marginBottom: '12px', fontSize: '14px' }}>{myAccountError}</div>}
+{myAccountSuccess && <div style={{ backgroundColor: '#D4EDDA', color: '#155724', padding: '10px', borderRadius: '6px', marginBottom: '12px', fontSize: '14px' }}>{myAccountSuccess}</div>}
+
+<form onSubmit={handleChangePassword}>
+<label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#555', textTransform: 'uppercase' }}>Current Password *</label>
+<input type="password" value={myAccountForm.currentPassword} onChange={e => setMyAccountForm({ ...myAccountForm, currentPassword: e.target.value })} required style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box', marginBottom: '12px' }} />
+
+<label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#555', textTransform: 'uppercase' }}>New Password *</label>
+<input type="password" value={myAccountForm.newPassword} onChange={e => setMyAccountForm({ ...myAccountForm, newPassword: e.target.value })} required style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box', marginBottom: '12px' }} />
+
+<label style={{ display: 'block', marginBottom: '4px', fontSize: '12px', fontWeight: '600', color: '#555', textTransform: 'uppercase' }}>Confirm New Password *</label>
+<input type="password" value={myAccountForm.confirmPassword} onChange={e => setMyAccountForm({ ...myAccountForm, confirmPassword: e.target.value })} required style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #ddd', fontSize: '14px', boxSizing: 'border-box', marginBottom: '16px' }} />
+
+<div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+<button type="button" onClick={() => setShowMyAccount(false)} style={{ padding: '9px 18px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer', fontSize: '14px', backgroundColor: 'white' }}>Close</button>
+<button type="submit" disabled={myAccountSaving} style={{ padding: '9px 24px', borderRadius: '6px', border: 'none', cursor: 'pointer', fontSize: '14px', backgroundColor: RED, color: 'white', fontWeight: '600' }}>{myAccountSaving ? 'Saving...' : 'Change Password'}</button>
+</div>
+</form>
+</div>
+</div>
+</div>
+)}
+
 </div>
 );
 }

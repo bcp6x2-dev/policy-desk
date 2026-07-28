@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const API = 'https://policy-desk-production.up.railway.app';
 
-function UserManagement({ onClose }) {
+function UserManagement({ onClose, currentUser }) {
 const [users, setUsers] = useState([]);
 const [loading, setLoading] = useState(true);
 const [showForm, setShowForm] = useState(false);
@@ -41,6 +41,7 @@ formTitle: { margin: '0 0 20px', color: RED },
 errorMsg: { backgroundColor: '#F8D7DA', color: '#721C24', padding: '10px', borderRadius: '6px', marginBottom: '12px', fontSize: '14px' },
 passwordSection: { backgroundColor: '#F8F9FA', border: '1px solid #E0E0E0', borderRadius: '8px', padding: '14px', marginBottom: '12px' },
 passwordSectionTitle: { fontSize: '12px', fontWeight: '700', color: '#555', textTransform: 'uppercase', marginBottom: '10px', marginTop: 0 },
+infoMsg: { backgroundColor: '#CCE5FF', color: '#004085', padding: '10px', borderRadius: '6px', marginBottom: '12px', fontSize: '13px' },
 };
 
 useEffect(() => {
@@ -118,6 +119,8 @@ setForm({ name: '', email: '', password: '', newPassword: '', role: 'employee' }
 setShowForm(true);
 }
 
+const isEditingSelf = editUser && currentUser && editUser.id === currentUser.id;
+
 return (
 <div style={s.overlay}>
 <div style={s.modal}>
@@ -186,13 +189,19 @@ return (
 <input style={s.input} type="password" value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} required placeholder="They can change this after login" />
 </>}
 
-{editUser && <>
+{editUser && !isEditingSelf && <>
 <div style={s.passwordSection}>
 <p style={s.passwordSectionTitle}>🔑 Reset Password (optional)</p>
 <label style={s.label}>New Password</label>
 <input style={s.input} type="password" value={form.newPassword} onChange={e => setForm({ ...form, newPassword: e.target.value })} placeholder="Leave blank to keep current password" />
 </div>
 </>}
+
+{editUser && isEditingSelf && (
+<div style={s.infoMsg}>
+💡 To change your own password, use the <strong>My Account</strong> button in the header.
+</div>
+)}
 
 <label style={s.label}>Role *</label>
 <select style={s.select} value={form.role} onChange={e => setForm({ ...form, role: e.target.value })}>
